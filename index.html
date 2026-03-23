@@ -3,1130 +3,746 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Solar Transit Finder — Flugzeuge vor der Sonne</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<title>Solar Transit Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0c10;
-    --bg2: #111318;
-    --bg3: #181c24;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.15);
-    --text: #e8eaf0;
-    --muted: #8890a0;
-    --accent: #f5a623;
-    --accent2: #ff6b35;
-    --sun: #ffd060;
-    --ok: #4caf82;
-    --danger: #e05c5c;
-    --info: #5b9cf6;
-    --mono: 'Space Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    min-height: 100vh;
-  }
-  /* ── Header ── */
-  header {
-    padding: 18px 24px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .logo {
-    width: 32px; height: 32px;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .logo svg { width: 32px; height: 32px; }
-  header h1 {
-    font-family: var(--mono);
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--text);
-  }
-  header h1 span { color: var(--sun); }
-  .status-pill {
-    margin-left: auto;
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .status-pill .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
-  .status-pill.live .dot { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
-  .status-pill.live { border-color: rgba(76,175,130,0.3); color: var(--ok); }
-  .status-pill.error .dot { background: var(--danger); }
-  .status-pill.error { border-color: rgba(224,92,92,0.3); color: var(--danger); }
+:root {
+  --bg:     #090b0f;
+  --bg2:    #10131a;
+  --bg3:    #181c26;
+  --border: rgba(255,255,255,0.07);
+  --bord2:  rgba(255,255,255,0.13);
+  --text:   #dde1ec;
+  --muted:  #7a8399;
+  --sun:    #ffd060;
+  --ok:     #4ecb8d;
+  --warn:   #f5a623;
+  --info:   #5b9cf6;
+  --danger: #e05c5c;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-  /* ── Layout ── */
-  .app {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    height: calc(100vh - 65px);
-  }
-  @media(max-width: 900px) {
-    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; }
-  }
-  /* ── Sidebar ── */
-  .sidebar {
-    border-right: 1px solid var(--border);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-  .section {
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .section-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-  /* Location */
-  .loc-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .loc-row input {
-    flex: 1;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 7px 10px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .loc-row input:focus { border-color: var(--accent); }
-  .loc-row input::placeholder { color: var(--muted); }
-  .btn {
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 7px 12px;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-  }
-  .btn:hover { background: var(--bg2); border-color: var(--accent); color: var(--accent); }
-  .btn.primary {
-    background: rgba(245,166,35,0.12);
-    border-color: rgba(245,166,35,0.4);
-    color: var(--accent);
-  }
-  .btn.primary:hover { background: rgba(245,166,35,0.2); }
+header {
+  height: 50px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px; padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+.logo { width: 26px; height: 26px; flex-shrink: 0; }
+header h1 { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.07em; }
+header h1 em { color: var(--sun); font-style: normal; }
+.pills { margin-left: auto; display: flex; gap: 6px; }
+.pill {
+  font-family: var(--mono); font-size: 9px;
+  padding: 3px 8px; border-radius: 20px;
+  border: 1px solid var(--bord2); color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+}
+.pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.pill.live { color: var(--ok); border-color: rgba(78,203,141,0.3); }
+.pill.live .dot { background: var(--ok); }
+.pill.err  { color: var(--danger); border-color: rgba(224,92,92,0.3); }
+.pill.err .dot { background: var(--danger); }
 
-  /* Sun info */
-  .sun-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .sun-stat {
-    background: var(--bg3);
-    border-radius: 6px;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-  }
-  .sun-stat .val {
-    font-family: var(--mono);
-    font-size: 16px;
-    color: var(--sun);
-    font-weight: 700;
-  }
-  .sun-stat .lbl {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
+.app { flex: 1; display: flex; overflow: hidden; }
 
-  /* Settings */
-  .setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .setting-row:last-child { margin-bottom: 0; }
-  .setting-label { font-size: 12px; color: var(--muted); }
-  .setting-val {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text);
-  }
-  input[type=range] {
-    -webkit-appearance: none;
-    background: var(--bg3);
-    height: 4px;
-    border-radius: 2px;
-    outline: none;
-    width: 120px;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-  }
-  /* Candidate list */
-  .candidates {
-    flex: 1;
-    overflow-y: auto;
-  }
-  .empty-state {
-    padding: 24px 16px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.6;
-  }
-  .candidate-card {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-    position: relative;
-  }
-  .candidate-card:hover { background: var(--bg3); }
-  .candidate-card.selected { background: rgba(245,166,35,0.06); border-left: 2px solid var(--accent); }
-  .candidate-card.transit { background: rgba(76,175,130,0.05); border-left: 2px solid var(--ok); }
-  .cand-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-  .cand-callsign {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .cand-dist {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-  }
-  .cand-bar-wrap {
-    height: 3px;
-    background: var(--bg3);
-    border-radius: 2px;
-    margin: 6px 0;
-    overflow: hidden;
-  }
-  .cand-bar {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
-  .cand-meta {
-    display: flex;
-    gap: 12px;
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .cand-meta span { font-family: var(--mono); }
-  .tag {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border: 1px solid;
-  }
-  .tag.transit { background: rgba(76,175,130,0.12); color: var(--ok); border-color: rgba(76,175,130,0.3); }
-  .tag.close { background: rgba(245,166,35,0.12); color: var(--accent); border-color: rgba(245,166,35,0.3); }
-  .tag.far { background: transparent; color: var(--muted); border-color: var(--border); }
-  .refresh-row {
-    padding: 10px 16px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-  /* ── Main panel ── */
-  .main {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  /* Sky canvas */
-  .sky-wrap {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: radial-gradient(ellipse at 50% 40%, #0c1322 0%, #050709 100%);
-  }
-  canvas#sky {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-  }
-  .sky-overlay {
-    position: absolute;
-    top: 12px; left: 12px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: rgba(255,255,255,0.3);
-    line-height: 1.8;
-    pointer-events: none;
-  }
-  .sky-overlay.right {
-    left: auto; right: 12px;
-    text-align: right;
-  }
-  /* Detail panel */
-  .detail-bar {
-    border-top: 1px solid var(--border);
-    padding: 12px 20px;
-    background: var(--bg2);
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-  }
-  @media(max-width: 1100px) {
-    .detail-bar { grid-template-columns: repeat(3, 1fr); }
-  }
-  .detail-stat .val {
-    font-family: var(--mono);
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .detail-stat .val.accent { color: var(--accent); }
-  .detail-stat .val.ok { color: var(--ok); }
-  .detail-stat .val.danger { color: var(--danger); }
-  .detail-stat .lbl {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 2px;
-  }
-  /* Timer ring */
-  .timer-ring {
-    position: absolute;
-    bottom: 80px;
-    right: 20px;
-    width: 64px; height: 64px;
-    pointer-events: none;
-  }
-  .no-loc {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-    padding: 20px;
-  }
-  .no-loc svg { opacity: 0.3; }
-  .hint-box {
-    background: rgba(91,156,246,0.08);
-    border: 1px solid rgba(91,156,246,0.2);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 11px;
-    color: var(--info);
-    line-height: 1.6;
-    margin-top: 4px;
-  }
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.sidebar {
+  width: 296px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+.sec { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.slbl { font-family: var(--mono); font-size: 9px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+
+.dms-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.dms-lbl { font-family: var(--mono); font-size: 10px; color: var(--muted); width: 12px; flex-shrink: 0; }
+.dms-fields { display: flex; gap: 2px; flex: 1; align-items: center; }
+.dms-fields input {
+  flex: 1; min-width: 0; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 5px 4px; color: var(--text);
+  font-family: var(--mono); font-size: 10px; outline: none; text-align: center;
+}
+.dms-fields input:focus { border-color: var(--warn); }
+.dms-fields input::placeholder { color: var(--muted); opacity: 0.6; }
+.dms-unit { font-size: 9px; color: var(--muted); font-family: var(--mono); flex-shrink: 0; }
+.dms-fields select {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); font-family: var(--mono); font-size: 10px; padding: 5px 3px; outline: none;
+}
+.dms-out { font-family: var(--mono); font-size: 10px; color: var(--sun); text-align: center; margin: 5px 0 8px; min-height: 13px; }
+.btnrow { display: flex; gap: 5px; }
+.btn {
+  flex: 1; background: var(--bg3); border: 1px solid var(--bord2);
+  border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 10px;
+  padding: 6px 8px; cursor: pointer; transition: all 0.12s;
+}
+.btn:hover { background: var(--bg2); border-color: var(--warn); color: var(--warn); }
+.btn.p { background: rgba(245,166,35,0.1); border-color: rgba(245,166,35,0.4); color: var(--warn); }
+.btn.p:hover { background: rgba(245,166,35,0.2); }
+
+.sungrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.suncell { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; }
+.suncell .v { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--sun); }
+.suncell .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
+
+.srow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.srow:last-child { margin-bottom: 0; }
+.srow span { font-size: 11px; color: var(--muted); }
+.sv { font-family: var(--mono); font-size: 11px; color: var(--text); }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 3px;
+  background: var(--bg3); border-radius: 2px; outline: none; margin-top: 2px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--warn); cursor: pointer;
+}
+
+.aclist-hdr { padding: 8px 14px 3px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.aclist { flex: 1; overflow-y: auto; }
+.aclist::-webkit-scrollbar { width: 3px; }
+.aclist::-webkit-scrollbar-thumb { background: var(--bord2); border-radius: 2px; }
+.empty { padding: 18px 14px; text-align: center; color: var(--muted); font-size: 11px; line-height: 1.7; }
+
+.acard {
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s; border-left: 2px solid transparent;
+}
+.acard:hover { background: var(--bg3); }
+.acard.sel { background: rgba(245,166,35,0.05); border-left-color: var(--warn); }
+.acard.tr  { border-left-color: var(--ok); background: rgba(78,203,141,0.04); }
+.atop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+.acs { font-family: var(--mono); font-size: 11px; font-weight: 700; }
+.tag { font-family: var(--mono); font-size: 8px; padding: 2px 5px; border-radius: 3px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.05em; }
+.tag.t { color:var(--ok);   border-color:rgba(78,203,141,0.35); background:rgba(78,203,141,0.1); }
+.tag.n { color:var(--warn); border-color:rgba(245,166,35,0.35); background:rgba(245,166,35,0.1); }
+.tag.f { color:var(--muted);border-color:var(--border); }
+.abar-w { height: 2px; background: var(--bg3); border-radius: 1px; margin: 4px 0; }
+.abar   { height: 100%; border-radius: 1px; transition: width 0.5s; }
+.ameta  { display: flex; gap: 8px; font-size: 9px; color: var(--muted); font-family: var(--mono); }
+
+.refrow { padding: 7px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--muted); }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.skywrap {
+  flex: 1; position: relative; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 50%, #0c1220 0%, #04060a 100%);
+}
+canvas#sky { display: block; }
+.infoTL, .infoTR {
+  position: absolute; top: 10px; pointer-events: none;
+  font-family: var(--mono); font-size: 9px; color: rgba(255,255,255,0.22); line-height: 1.9;
+}
+.infoTL { left: 12px; }
+.infoTR { right: 12px; text-align: right; }
+.sunbelow {
+  position: absolute; inset: 0; display: none;
+  align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+  font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: center;
+}
+
+.detbar {
+  flex-shrink: 0; border-top: 1px solid var(--border);
+  background: var(--bg2); padding: 9px 18px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+}
+.ds .v { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--text); }
+.ds .v.ok { color: var(--ok); }
+.ds .v.w  { color: var(--warn); }
+.ds .v.i  { color: var(--info); }
+.ds .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <svg viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="6" fill="#ffd060" opacity="0.9"/>
-      <circle cx="16" cy="16" r="10" fill="none" stroke="#ffd060" stroke-width="0.8" stroke-dasharray="2 3"/>
-      <line x1="16" y1="2" x2="16" y2="6" stroke="#ffd060" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="16" y1="26" x2="16" y2="30" stroke="#ffd060" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="2" y1="16" x2="6" y2="16" stroke="#ffd060" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="26" y1="16" x2="30" y2="16" stroke="#ffd060" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </div>
-  <h1>Solar<span>Transit</span> Finder</h1>
-  <div class="status-pill" id="statusPill">
-    <div class="dot"></div>
-    <span id="statusText">Standort erforderlich</span>
+  <svg class="logo" viewBox="0 0 26 26" fill="none">
+    <circle cx="13" cy="13" r="5" fill="#ffd060"/>
+    <circle cx="13" cy="13" r="8" stroke="#ffd060" stroke-width="0.6" stroke-dasharray="2 2.5" opacity="0.55"/>
+    <line x1="13" y1="2" x2="13" y2="5" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
+    <line x1="13" y1="21" x2="13" y2="24" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
+    <line x1="2" y1="13" x2="5" y2="13" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
+    <line x1="21" y1="13" x2="24" y2="13" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
+  </svg>
+  <h1>Solar<em>Transit</em>Finder</h1>
+  <div class="pills">
+    <div class="pill" id="apiPill"><div class="dot"></div><span id="apiTxt">—</span></div>
+    <div class="pill" id="stPill"><div class="dot"></div><span id="stTxt">Standort eingeben</span></div>
   </div>
 </header>
 
 <div class="app">
-  <!-- Sidebar -->
   <div class="sidebar">
-    <!-- Location -->
-    <div class="section">
-      <div class="section-label">Beobachterstandort</div>
-      <div class="loc-row">
-        <input type="number" id="lat" placeholder="Breitengrad" step="0.0001" value="50.7753">
-        <input type="number" id="lon" placeholder="Längengrad" step="0.0001" value="6.0839">
+
+    <div class="sec">
+      <div class="slbl">Beobachterstandort</div>
+
+      <div class="dms-row">
+        <span class="dms-lbl">φ</span>
+        <div class="dms-fields">
+          <input type="number" id="latD" placeholder="°" min="0" max="89" step="1">
+          <span class="dms-unit">°</span>
+          <input type="number" id="latM" placeholder="'" min="0" max="59" step="1">
+          <span class="dms-unit">'</span>
+          <input type="number" id="latS" placeholder='"' min="0" max="59.9" step="0.1">
+          <span class="dms-unit">"</span>
+          <select id="latH"><option>N</option><option>S</option></select>
+        </div>
       </div>
-      <div class="loc-row">
-        <button class="btn primary" id="geoBtn">GPS-Standort</button>
-        <button class="btn" id="startBtn">Starten</button>
+
+      <div class="dms-row">
+        <span class="dms-lbl">λ</span>
+        <div class="dms-fields">
+          <input type="number" id="lonD" placeholder="°" min="0" max="179" step="1">
+          <span class="dms-unit">°</span>
+          <input type="number" id="lonM" placeholder="'" min="0" max="59" step="1">
+          <span class="dms-unit">'</span>
+          <input type="number" id="lonS" placeholder='"' min="0" max="59.9" step="0.1">
+          <span class="dms-unit">"</span>
+          <select id="lonH"><option>E</option><option>W</option></select>
+        </div>
       </div>
-      <div class="hint-box" id="locHint">
-        Koordinaten eingeben oder GPS nutzen, dann "Starten" drücken.
+
+      <div class="dms-out" id="dmsOut">—</div>
+      <div class="btnrow">
+        <button class="btn p" id="gpsBtn">GPS-Standort</button>
+        <button class="btn"   id="startBtn">Starten</button>
       </div>
     </div>
 
-    <!-- Sun info -->
-    <div class="section">
-      <div class="section-label">Sonne — aktuell</div>
-      <div class="sun-grid">
-        <div class="sun-stat">
-          <div class="val" id="sunAz">—°</div>
-          <div class="lbl">Azimut</div>
-        </div>
-        <div class="sun-stat">
-          <div class="val" id="sunEl">—°</div>
-          <div class="lbl">Elevation</div>
-        </div>
-        <div class="sun-stat">
-          <div class="val" id="sunRA">—</div>
-          <div class="lbl">Aufgang</div>
-        </div>
-        <div class="sun-stat">
-          <div class="val" id="sunSet">—</div>
-          <div class="lbl">Untergang</div>
-        </div>
+    <div class="sec">
+      <div class="slbl">Sonne — aktuell</div>
+      <div class="sungrid">
+        <div class="suncell"><div class="v" id="sAz">—</div><div class="l">Azimut</div></div>
+        <div class="suncell"><div class="v" id="sEl">—</div><div class="l">Elevation</div></div>
+        <div class="suncell"><div class="v" id="sRise">—</div><div class="l">Aufgang</div></div>
+        <div class="suncell"><div class="v" id="sSet">—</div><div class="l">Untergang</div></div>
       </div>
     </div>
 
-    <!-- Settings -->
-    <div class="section">
-      <div class="section-label">Parameter</div>
-      <div class="setting-row">
-        <span class="setting-label">Max. Winkelabstand</span>
-        <span class="setting-val" id="threshVal">1.5°</span>
-      </div>
-      <div class="setting-row">
-        <input type="range" id="threshSlider" min="0.2" max="5" step="0.1" value="1.5">
-      </div>
-      <div class="setting-row" style="margin-top:10px;">
-        <span class="setting-label">Suchradius</span>
-        <span class="setting-val" id="radiusVal">150 km</span>
-      </div>
-      <div class="setting-row">
-        <input type="range" id="radiusSlider" min="50" max="300" step="10" value="150">
-      </div>
-      <div class="setting-row" style="margin-top:10px;">
-        <span class="setting-label">Update-Intervall</span>
-        <span class="setting-val" id="intervalVal">8 s</span>
-      </div>
-      <div class="setting-row">
-        <input type="range" id="intervalSlider" min="5" max="30" step="1" value="8">
-      </div>
+    <div class="sec">
+      <div class="slbl">Einstellungen</div>
+      <div class="srow"><span>Schwellwert Winkelabstand</span><span class="sv" id="thrV">1.5°</span></div>
+      <input type="range" id="thrSlider" min="0.2" max="5" step="0.1" value="1.5">
+      <div class="srow" style="margin-top:9px"><span>Suchradius</span><span class="sv" id="radV">150 km</span></div>
+      <input type="range" id="radSlider" min="30" max="300" step="10" value="150">
+      <div class="srow" style="margin-top:9px"><span>Update-Intervall</span><span class="sv" id="intV">8 s</span></div>
+      <input type="range" id="intSlider" min="5" max="30" step="1" value="8">
     </div>
 
-    <!-- Candidate list -->
-    <div class="section-label" style="padding: 12px 16px 4px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);">
-      Flugzeuge in der Nähe
-    </div>
-    <div class="candidates" id="candidateList">
-      <div class="empty-state">
-        Noch keine Daten.<br>Standort eingeben und Tracking starten.
-      </div>
-    </div>
-
-    <div class="refresh-row">
-      <span id="lastUpdate">—</span>
-      <button class="btn" id="refreshBtn" style="font-size:10px;padding:4px 8px;">Jetzt aktualisieren</button>
+    <div class="aclist-hdr">Flugzeuge — nach Transit-Wahrscheinlichkeit</div>
+    <div class="aclist" id="acList"><div class="empty">Starte das Tracking um Flugzeuge zu sehen.</div></div>
+    <div class="refrow">
+      <span id="lastUpd">—</span>
+      <button class="btn" id="refBtn" style="flex:0;padding:3px 8px;font-size:9px;">Refresh</button>
     </div>
   </div>
 
-  <!-- Main visualization -->
   <div class="main">
-    <div class="sky-wrap" id="skyWrap">
-      <div class="no-loc" id="noLocOverlay">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <circle cx="24" cy="24" r="10" fill="#ffd060"/>
-          <circle cx="24" cy="24" r="16" stroke="#ffd060" stroke-width="1" stroke-dasharray="3 4"/>
-          <line x1="24" y1="4" x2="24" y2="10" stroke="#ffd060" stroke-width="2" stroke-linecap="round"/>
-          <line x1="24" y1="38" x2="24" y2="44" stroke="#ffd060" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4" y1="24" x2="10" y2="24" stroke="#ffd060" stroke-width="2" stroke-linecap="round"/>
-          <line x1="38" y1="24" x2="44" y2="24" stroke="#ffd060" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <div>Standort setzen und Tracking starten,<br>um die Himmelsansicht zu aktivieren.</div>
-      </div>
+    <div class="skywrap" id="skyWrap">
       <canvas id="sky"></canvas>
-      <div class="sky-overlay" id="skyLeft"></div>
-      <div class="sky-overlay right" id="skyRight"></div>
-      <svg class="timer-ring" id="timerRing" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
-        <circle cx="32" cy="32" r="28" fill="none" stroke="#f5a623" stroke-width="3"
-          stroke-dasharray="175.9" stroke-dashoffset="175.9" id="timerArc"
-          stroke-linecap="round" transform="rotate(-90 32 32)" style="transition: stroke-dashoffset 0.5s ease;"/>
-        <text x="32" y="36" text-anchor="middle" fill="#f5a623" font-family="Space Mono" font-size="11" font-weight="700" id="timerText">—</text>
-      </svg>
+      <div class="infoTL" id="infoTL"></div>
+      <div class="infoTR" id="infoTR"></div>
+      <div class="sunbelow" id="sunBelow">
+        <div style="font-size:24px;opacity:0.3">☀</div>
+        Sonne unter dem Horizont — kein Transit möglich
+      </div>
     </div>
-
-    <div class="detail-bar" id="detailBar">
-      <div class="detail-stat">
-        <div class="val" id="dCallsign">—</div>
-        <div class="lbl">Rufzeichen</div>
-      </div>
-      <div class="detail-stat">
-        <div class="val" id="dSep">—</div>
-        <div class="lbl">Winkelabstand</div>
-      </div>
-      <div class="detail-stat">
-        <div class="val" id="dETA">—</div>
-        <div class="lbl">Transit in</div>
-      </div>
-      <div class="detail-stat">
-        <div class="val" id="dMinSep">—</div>
-        <div class="lbl">Min. Abstand</div>
-      </div>
-      <div class="detail-stat">
-        <div class="val" id="dAlt">—</div>
-        <div class="lbl">Höhe</div>
-      </div>
+    <div class="detbar">
+      <div class="ds"><div class="v i" id="dCS">—</div><div class="l">Rufzeichen</div></div>
+      <div class="ds"><div class="v i" id="dSep">—</div><div class="l">Akt. Abstand ☀</div></div>
+      <div class="ds"><div class="v i" id="dMin">—</div><div class="l">Min. Abstand</div></div>
+      <div class="ds"><div class="v i" id="dETA">—</div><div class="l">Transit in</div></div>
+      <div class="ds"><div class="v i" id="dAlt">—</div><div class="l">Flughöhe</div></div>
     </div>
   </div>
 </div>
 
 <script>
-// ── SunCalc (inline, minimal) ─────────────────────────────────────────────
-const SC = (() => {
-  const rad = Math.PI / 180;
-  const sin = Math.sin, cos = Math.cos, tan = Math.tan,
-        asin = Math.asin, atan2 = Math.atan2, acos = Math.acos;
-  function toDays(d) { return d / 864e5 - 0.5 + 2440587.5 - 2451545; }
-  function solarMeanAnomaly(d) { return rad * (357.5291 + 0.98560028 * d); }
-  function eclipticLongitude(M) {
-    const C = rad * (1.9148 * sin(M) + 0.02 * sin(2*M) + 3e-4 * sin(3*M));
-    return M + C + rad * 102.9372 + Math.PI;
-  }
-  function sunCoords(d) {
-    const M = solarMeanAnomaly(d), L = eclipticLongitude(M);
-    return {
-      dec: asin(sin(rad * 23.4397) * sin(L)),
-      ra: atan2(cos(rad * 23.4397) * sin(L), cos(L))
-    };
-  }
-  function azEl(d, lat, lon) {
-    const lw = -rad * lon, phi = rad * lat;
-    const t = (d / 36525) * 360 * rad;
-    const th = rad * (280.16 + 360.9856235 * d) - lw;
-    const c = sunCoords(d);
-    const H = th - c.ra;
-    const az = atan2(sin(H), cos(H) * sin(phi) - tan(c.dec) * cos(phi));
-    const el = asin(sin(phi) * sin(c.dec) + cos(phi) * cos(c.dec) * cos(H));
-    return {
-      azimuth: az / rad + 180,
-      altitude: el / rad
-    };
-  }
-  function riseSet(date, lat, lon) {
-    const d = toDays(date);
-    const c = sunCoords(d);
-    const lw = -lon * rad, phi = lat * rad;
-    const cosH = (sin(-0.833 * rad) - sin(phi) * sin(c.dec)) / (cos(phi) * cos(c.dec));
-    if (Math.abs(cosH) > 1) return { rise: null, set: null };
-    const h = acos(cosH) / rad;
-    const noon = (180 + lon) / 360;
-    const transit = new Date(date);
-    transit.setUTCHours(0,0,0,0);
-    const base = transit.getTime();
-    const riseT = base + (noon - h/360) * 864e5;
-    const setT  = base + (noon + h/360) * 864e5;
-    return { rise: new Date(riseT), set: new Date(setT) };
-  }
+// ═══════════════════════════════════════════════
+// SUN POSITION  (Jean Meeus)
+// ═══════════════════════════════════════════════
+function sunPos(date, lat, lon) {
+  const D2R = Math.PI / 180;
+  const JD  = date / 86400000 + 2440587.5;
+  const n   = JD - 2451545.0;
+  const L   = (280.460 + 0.9856474 * n) % 360;
+  const g   = (357.528 + 0.9856003 * n) * D2R;
+  const lam = (L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) * D2R;
+  const eps = 23.439 * D2R;
+  const RA  = Math.atan2(Math.cos(eps)*Math.sin(lam), Math.cos(lam));
+  const dec = Math.asin(Math.sin(eps)*Math.sin(lam));
+  const GMST = (280.46061837 + 360.98564736629*(JD-2451545)) * D2R;
+  const H   = GMST + lon*D2R - RA;
+  const phi = lat * D2R;
+  const sinEl = Math.sin(phi)*Math.sin(dec) + Math.cos(phi)*Math.cos(dec)*Math.cos(H);
+  const el  = Math.asin(Math.max(-1, Math.min(1, sinEl)));
+  const az  = Math.atan2(-Math.cos(dec)*Math.sin(H),
+                          Math.sin(dec)*Math.cos(phi) - Math.cos(dec)*Math.cos(H)*Math.sin(phi));
+  return { az: ((az/D2R)+360)%360, el: el/D2R };
+}
+
+function sunTimes(lat, lon) {
+  const D2R = Math.PI / 180;
+  const now = Date.now();
+  const JD  = now/86400000 + 2440587.5;
+  const n   = Math.floor(JD - 2451545.0 + 0.5);
+  const Js  = n - lon/360;
+  const M   = (357.5291 + 0.98560028*Js) * D2R;
+  const C   = 1.9148*Math.sin(M) + 0.02*Math.sin(2*M) + 0.0003*Math.sin(3*M);
+  const lam = (M/D2R + C + 102.9372 + 180) * D2R;
+  const Jt  = 2451545 + Js + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*lam);
+  const dec = Math.asin(Math.sin(lam)*Math.sin(23.4397*D2R));
+  const cosH= (Math.sin(-0.8333*D2R) - Math.sin(lat*D2R)*Math.sin(dec))
+              / (Math.cos(lat*D2R)*Math.cos(dec));
+  if (Math.abs(cosH) > 1) return { rise:null, set:null };
+  const H   = Math.acos(cosH)/D2R;
   return {
-    getPosition(date, lat, lon) {
-      const d = toDays(date);
-      return azEl(d, lat, lon);
-    },
-    getTimes(date, lat, lon) { return riseSet(date, lat, lon); }
+    rise: new Date((Jt - H/360 - 2440587.5)*86400000),
+    set:  new Date((Jt + H/360 - 2440587.5)*86400000)
   };
-})();
-
-// ── App state ────────────────────────────────────────────────────────────
-let state = {
-  lat: 50.7753, lon: 6.0839, active: false,
-  aircraft: [], lastFetch: null,
-  selectedIcao: null,
-  intervalId: null, sunIntervalId: null,
-  threshold: 1.5, radius: 150, intervalSec: 8,
-  countdown: 0
-};
-
-// ── Helpers ──────────────────────────────────────────────────────────────
-function deg2rad(d) { return d * Math.PI / 180; }
-function rad2deg(r) { return r * 180 / Math.PI; }
-
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371, dLat = deg2rad(lat2-lat1), dLon = deg2rad(lon2-lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// Convert aircraft position to azimuth/elevation from observer
-function acAzEl(obsLat, obsLon, acLat, acLon, acAltM) {
-  const obsAltM = 100;
-  const R = 6371000;
-  const dx = deg2rad(acLon - obsLon) * R * Math.cos(deg2rad(obsLat));
-  const dy = deg2rad(acLat - obsLat) * R;
-  const dz = acAltM - obsAltM;
-  const dist2d = Math.sqrt(dx*dx + dy*dy);
-  const azRad = Math.atan2(dx, dy);
-  const az = ((rad2deg(azRad) % 360) + 360) % 360;
-  const el = rad2deg(Math.atan2(dz, dist2d));
-  return { az, el, dist2d: dist2d / 1000 };
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+const D2R = Math.PI/180;
+
+function decToDMS(v, isLat) {
+  const h = isLat ? (v>=0?'N':'S') : (v>=0?'E':'W');
+  const a = Math.abs(v);
+  const d = Math.floor(a), m = Math.floor((a-d)*60), s = ((a-d)*60-m)*60;
+  return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"${h}`;
 }
 
-// Angular separation between two az/el points
-function angSep(az1, el1, az2, el2) {
-  const a1 = deg2rad(az1), e1 = deg2rad(el1);
-  const a2 = deg2rad(az2), e2 = deg2rad(el2);
-  const dot = Math.sin(e1)*Math.sin(e2) + Math.cos(e1)*Math.cos(e2)*Math.cos(a1-a2);
-  return rad2deg(Math.acos(Math.min(1, Math.max(-1, dot))));
+function dmsToDec(d,m,s,h) {
+  const v = (parseFloat(d)||0)+(parseFloat(m)||0)/60+(parseFloat(s)||0)/3600;
+  return (h==='S'||h==='W') ? -v : v;
 }
 
-function fmtTime(date) {
-  return date.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
-function fmtSec(s) {
-  if (s < 0) return '—';
-  if (s < 60) return Math.round(s) + ' s';
-  return Math.floor(s/60) + 'm ' + Math.round(s%60) + 's';
+function haversine(la1,lo1,la2,lo2) {
+  const dLa=(la2-la1)*D2R, dLo=(lo2-lo1)*D2R;
+  const a=Math.sin(dLa/2)**2+Math.cos(la1*D2R)*Math.cos(la2*D2R)*Math.sin(dLo/2)**2;
+  return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// ── Linear extrapolation of transit ──────────────────────────────────────
-function predictTransit(ac, obsLat, obsLon, sunAz, sunEl) {
-  if (!ac.velocity || !ac.true_track || !ac.geo_altitude) return null;
-  const spd = ac.velocity;
-  const hdg = deg2rad(ac.true_track);
-  const dt = 10; // seconds per step
-  const steps = 180; // 30 minutes forward
-  let minSep = Infinity, minSepT = null;
-  let transitT = null, prevSep = null;
+function acAzEl(oLat,oLon,aLat,aLon,aAlt) {
+  const R=6371000;
+  const dx=(aLon-oLon)*D2R*R*Math.cos(oLat*D2R);
+  const dy=(aLat-oLat)*D2R*R;
+  const dz=aAlt-50;
+  const d2=Math.sqrt(dx*dx+dy*dy);
+  return {
+    az: ((Math.atan2(dx,dy)/D2R)%360+360)%360,
+    el: Math.atan2(dz,d2)/D2R
+  };
+}
 
-  for (let i = 0; i <= steps; i++) {
-    const t = i * dt;
-    const dkm = (spd * t) / 1000;
-    const dlat = (dkm / 111.32) * Math.cos(hdg);
-    const dlon = (dkm / (111.32 * Math.cos(deg2rad(ac.latitude)))) * Math.sin(hdg);
-    const nLat = ac.latitude + dlat;
-    const nLon = ac.longitude + dlon;
-    const pos = acAzEl(obsLat, obsLon, nLat, nLon, ac.geo_altitude);
-    if (pos.el < -2) continue;
-    const sep = angSep(pos.az, pos.el, sunAz, sunEl);
-    if (sep < minSep) { minSep = sep; minSepT = t; }
-    if (prevSep !== null && prevSep > 0.5 && sep <= 0.5 && transitT === null) {
-      transitT = t - dt * (sep / (prevSep - sep + 0.001));
-    }
-    prevSep = sep;
+function angSep(az1,el1,az2,el2) {
+  const dot=Math.sin(el1*D2R)*Math.sin(el2*D2R)
+           +Math.cos(el1*D2R)*Math.cos(el2*D2R)*Math.cos((az1-az2)*D2R);
+  return Math.acos(Math.max(-1,Math.min(1,dot)))/D2R;
+}
+
+function hm(d) { return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}); }
+function fmtS(s) {
+  if (s==null||s<0) return '—';
+  return s<60 ? Math.round(s)+'s' : Math.floor(s/60)+'m'+String(Math.round(s%60)).padStart(2,'0')+'s';
+}
+
+// ═══════════════════════════════════════════════
+// TRANSIT PREDICTION
+// ═══════════════════════════════════════════════
+function predict(ac, oLat, oLon, sAz, sEl) {
+  if (!ac.velocity||ac.velocity<10||ac.true_track==null||!ac.geo_altitude) return null;
+  const spd=ac.velocity, hdg=ac.true_track*D2R;
+  const DT=5, N=360;
+  let minSep=Infinity, minT=0;
+  for (let i=0;i<=N;i++) {
+    const t=i*DT, dkm=spd*t/1000;
+    const dLat=dkm/111.32*Math.cos(hdg);
+    const dLon=dkm/(111.32*Math.cos(ac.latitude*D2R))*Math.sin(hdg);
+    const pos=acAzEl(oLat,oLon,ac.latitude+dLat,ac.longitude+dLon,ac.geo_altitude);
+    if (pos.el<-10) continue;
+    const sep=angSep(pos.az,pos.el,sAz,sEl);
+    if (sep<minSep){minSep=sep;minT=t;}
   }
-  return { minSep, minSepT, transitT };
+  return {minSep, minSepT:minT};
 }
 
-// ── ADS-B fetch helpers ───────────────────────────────────────────────────
-function parseAdsbExFormat(ac) {
-  // Parses ADSBExchange-compatible format (adsb.lol, airplanes.live, adsb.one)
-  return ac.map(a => ({
-    icao24: (a.hex || '').toLowerCase(),
-    callsign: (a.flight || '').trim() || (a.hex || '').toUpperCase(),
+// ═══════════════════════════════════════════════
+// ADS-B FETCH
+// ═══════════════════════════════════════════════
+function parseAc(arr) {
+  return (arr||[]).map(a=>({
+    icao24:    (a.hex||'').toLowerCase(),
+    callsign:  (a.flight||'').trim()||(a.hex||'').toUpperCase(),
     longitude: a.lon, latitude: a.lat,
-    geo_altitude: (a.alt_geom != null ? a.alt_geom : (a.alt_baro || 0)) * 0.3048,
-    velocity: (a.gs || 0) * 0.514444,
-    true_track: a.track || 0,
-    vertical_rate: a.baro_rate || 0,
-    on_ground: !!(a.ground === '1' || a.on_ground)
-  })).filter(a =>
-    a.latitude != null && a.longitude != null &&
-    !a.on_ground && a.geo_altitude > 300 && a.icao24
-  );
+    geo_altitude: (a.alt_geom!=null?a.alt_geom:(a.alt_baro||0))*0.3048,
+    velocity:  (a.gs||0)*0.514444,
+    true_track: a.track||0,
+    on_ground: !!(a.ground==='1'||a.on_ground)
+  })).filter(a=>a.latitude!=null&&a.longitude!=null&&!a.on_ground&&a.geo_altitude>200&&a.icao24);
 }
 
-async function tryFetch(url, timeout = 10000) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(timeout) });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+async function tfetch(url,ms=9000) {
+  const r=await fetch(url,{signal:AbortSignal.timeout(ms)});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
 }
 
 async function fetchAircraft() {
-  const { lat, lon, radius } = state;
-  const distNm = Math.ceil(radius * 0.539957);
-  const latF = lat.toFixed(4), lonF = lon.toFixed(4);
-
-  const attempts = [
-    // 1. airplanes.live via corsproxy.io
-    async () => {
-      const target = `https://api.airplanes.live/v2/point/${latF}/${lonF}/${distNm}`;
-      const url = `https://corsproxy.io/?url=${encodeURIComponent(target)}`;
-      const data = await tryFetch(url, 10000);
-      return parseAdsbExFormat(data.ac || []);
-    },
-    // 2. adsb.one via corsproxy.io
-    async () => {
-      const target = `https://api.adsb.one/v2/point/${latF}/${lonF}/${distNm}`;
-      const url = `https://corsproxy.io/?url=${encodeURIComponent(target)}`;
-      const data = await tryFetch(url, 10000);
-      return parseAdsbExFormat(data.ac || []);
-    },
-    // 3. adsb.lol direct (may work depending on browser/CORS)
-    async () => {
-      const url = `https://api.adsb.lol/v2/lat/${latF}/lon/${lonF}/dist/${distNm}`;
-      const data = await tryFetch(url, 10000);
-      return parseAdsbExFormat(data.ac || []);
-    },
-    // 4. OpenSky via allorigins proxy
-    async () => {
-      const deg = radius / 111;
-      const lonDeg = deg / Math.cos(deg2rad(lat));
-      const params = `lamin=${(lat-deg).toFixed(4)}&lomin=${(lon-lonDeg).toFixed(4)}&lamax=${(lat+deg).toFixed(4)}&lomax=${(lon+lonDeg).toFixed(4)}`;
-      const target = `https://opensky-network.org/api/states/all?${params}`;
-      const url = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
-      const wrapper = await tryFetch(url, 12000);
-      const data = JSON.parse(wrapper.contents);
-      if (!data.states) return [];
-      return data.states.map(s => ({
-        icao24: s[0], callsign: (s[1]||'').trim() || (s[0]||'').toUpperCase(),
-        longitude: s[5], latitude: s[6], geo_altitude: s[13]||s[7]||0,
-        velocity: s[9]||0, true_track: s[10]||0, vertical_rate: s[11]||0,
-        on_ground: s[8]
-      })).filter(a => a.latitude && a.longitude && !a.on_ground && a.geo_altitude > 300);
-    }
+  const {lat,lon,radius}=S;
+  const nm=Math.ceil(radius*0.54), lf=lat.toFixed(4), lof=lon.toFixed(4);
+  const enc=encodeURIComponent;
+  const proxy='https://corsproxy.io/?url=';
+  const srcs=[
+    ['airplanes.live', ()=>tfetch(proxy+enc(`https://api.airplanes.live/v2/point/${lf}/${lof}/${nm}`)).then(d=>parseAc(d.ac))],
+    ['adsb.one',       ()=>tfetch(proxy+enc(`https://api.adsb.one/v2/point/${lf}/${lof}/${nm}`)).then(d=>parseAc(d.ac))],
+    ['adsb.lol',       ()=>tfetch(`https://api.adsb.lol/v2/lat/${lf}/lon/${lof}/dist/${nm}`).then(d=>parseAc(d.ac))],
+    ['adsb.lol/p',     ()=>tfetch(proxy+enc(`https://api.adsb.lol/v2/lat/${lf}/lon/${lof}/dist/${nm}`)).then(d=>parseAc(d.ac))],
   ];
-
-  for (let i = 0; i < attempts.length; i++) {
-    try {
-      const result = await attempts[i]();
-      if (result && result.length >= 0) {
-        state.apiSource = ['airplanes.live', 'adsb.one', 'adsb.lol', 'OpenSky'][i];
-        return result;
-      }
-    } catch(e) {
-      console.warn(`ADS-B source ${i+1} failed:`, e.message);
-    }
+  for (const [name,fn] of srcs) {
+    try { const r=await fn(); if(r){S.apiSource=name;return r;} }
+    catch(e){ console.warn(name,e.message); }
   }
   return null;
 }
 
-// ── Core update ──────────────────────────────────────────────────────────
-async function update() {
-  if (!state.active) return;
-  setStatus('loading', 'Aktualisiere...');
-  const aircraft = await fetchAircraft();
-  if (aircraft === null) {
-    setStatus('error', 'Alle APIs nicht erreichbar');
-    document.getElementById('locHint').textContent = 'Alle 4 ADS-B Quellen fehlgeschlagen. Bitte VPN deaktivieren oder später erneut versuchen.';
-    return;
-  }
-  state.aircraft = aircraft;
-  state.lastFetch = new Date();
-  updateSun();
-  renderCandidates();
-  drawSky();
-  document.getElementById('lastUpdate').textContent = 'Zuletzt: ' + fmtTime(state.lastFetch);
-  setStatus('live', aircraft.length + ' Flugzeuge · ' + (state.apiSource || ''));
-}
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const S = {
+  lat:null, lon:null, active:false,
+  aircraft:[], selectedIcao:null,
+  sunAz:null, sunEl:null,
+  threshold:1.5, radius:150, intervalSec:8,
+  timerA:null, timerS:null, apiSource:''
+};
 
-function updateSun() {
-  const now = new Date();
-  const sp = SC.getPosition(now, state.lat, state.lon);
-  const times = SC.getTimes(now, state.lat, state.lon);
-  state.sunAz = sp.azimuth;
-  state.sunEl = sp.altitude;
-  document.getElementById('sunAz').textContent = sp.azimuth.toFixed(1) + '°';
-  document.getElementById('sunEl').textContent = sp.altitude.toFixed(1) + '°';
-  if (times.rise) document.getElementById('sunRA').textContent = fmtTime(times.rise).slice(0,5);
-  if (times.set) document.getElementById('sunSet').textContent = fmtTime(times.set).slice(0,5);
-}
-
-function setStatus(type, text) {
-  const pill = document.getElementById('statusPill');
-  pill.className = 'status-pill ' + type;
-  document.getElementById('statusText').textContent = text;
-}
-
-// ── Render candidate list ─────────────────────────────────────────────────
-function renderCandidates() {
-  const list = document.getElementById('candidateList');
-  const { aircraft, lat, lon, threshold, sunAz, sunEl } = state;
-  if (!aircraft.length) {
-    list.innerHTML = '<div class="empty-state">Keine Flugzeuge im Suchbereich gefunden.</div>';
-    return;
-  }
-
-  // Score each aircraft
-  const scored = aircraft.map(ac => {
-    const pos = acAzEl(lat, lon, ac.latitude, ac.longitude, ac.geo_altitude);
-    const sep = angSep(pos.az, pos.el, sunAz, sunEl);
-    const pred = predictTransit(ac, lat, lon, sunAz, sunEl);
-    const km = haversineKm(lat, lon, ac.latitude, ac.longitude);
-    return { ac, pos, sep, pred, km };
-  }).sort((a,b) => (a.pred?.minSep ?? 99) - (b.pred?.minSep ?? 99));
-
-  list.innerHTML = '';
-  scored.slice(0, 20).forEach(({ ac, pos, sep, pred, km }) => {
-    const minSep = pred ? pred.minSep : sep;
-    const isTransit = minSep <= 0.5;
-    const isClose = minSep <= state.threshold;
-    const barPct = Math.max(0, Math.min(100, (1 - minSep / 10) * 100));
-    const barColor = isTransit ? '#4caf82' : isClose ? '#f5a623' : '#5b9cf6';
-    const tag = isTransit ? `<span class="tag transit">TRANSIT</span>` :
-                isClose   ? `<span class="tag close">NAH</span>` :
-                            `<span class="tag far">${minSep.toFixed(1)}°</span>`;
-    const etaStr = pred && pred.minSepT !== null ? fmtSec(pred.minSepT) : '—';
-    const selected = state.selectedIcao === ac.icao24;
-    const card = document.createElement('div');
-    card.className = 'candidate-card' + (selected?' selected':'') + (isTransit?' transit':'');
-    card.innerHTML = `
-      <div class="cand-top">
-        <span class="cand-callsign">${ac.callsign}</span>
-        ${tag}
-      </div>
-      <div class="cand-bar-wrap"><div class="cand-bar" style="width:${barPct}%;background:${barColor};"></div></div>
-      <div class="cand-meta">
-        <span>${km.toFixed(0)} km</span>
-        <span>${(ac.geo_altitude/1000).toFixed(1)} km Höhe</span>
-        <span>Transit in ${etaStr}</span>
-      </div>`;
-    card.addEventListener('click', () => {
-      state.selectedIcao = ac.icao24;
-      renderCandidates();
-      updateDetail({ ac, pos, sep, pred, km });
-      drawSky();
-    });
-    list.appendChild(card);
-  });
-
-  // Auto-select best
-  if (!state.selectedIcao && scored.length) {
-    const best = scored[0];
-    state.selectedIcao = best.ac.icao24;
-    updateDetail(best);
-  } else if (state.selectedIcao) {
-    const sel = scored.find(s => s.ac.icao24 === state.selectedIcao);
-    if (sel) updateDetail(sel);
-  }
-}
-
-function updateDetail({ ac, pos, sep, pred, km }) {
-  const isTransit = pred && pred.minSep <= 0.5;
-  const isClose = pred && pred.minSep <= state.threshold;
-  document.getElementById('dCallsign').textContent = ac.callsign;
-  document.getElementById('dCallsign').className = 'val' + (isTransit?' ok': isClose?' accent':'');
-  document.getElementById('dSep').textContent = sep.toFixed(2) + '°';
-  document.getElementById('dSep').className = 'val' + (sep<0.5?' ok':sep<state.threshold?' accent':'');
-  const etaSec = pred ? pred.minSepT : null;
-  document.getElementById('dETA').textContent = etaSec !== null ? fmtSec(etaSec) : '—';
-  document.getElementById('dETA').className = 'val' + (etaSec < 60 && etaSec !== null ?' ok':' accent');
-  document.getElementById('dMinSep').textContent = pred ? pred.minSep.toFixed(2) + '°' : '—';
-  document.getElementById('dMinSep').className = 'val' + (pred && pred.minSep<0.5?' ok': pred && pred.minSep<state.threshold?' accent':'');
-  document.getElementById('dAlt').textContent = ac.geo_altitude ? Math.round(ac.geo_altitude) + ' m' : '—';
-  // Timer
-  if (etaSec !== null && etaSec > 0 && etaSec < 600) {
-    const frac = Math.max(0, Math.min(1, etaSec / 300));
-    const circ = 175.9;
-    document.getElementById('timerArc').setAttribute('stroke-dashoffset', (circ * frac).toFixed(1));
-    document.getElementById('timerText').textContent = Math.round(etaSec) + 's';
-    document.getElementById('timerRing').style.opacity = '1';
-  } else {
-    document.getElementById('timerRing').style.opacity = '0.2';
-    document.getElementById('timerText').textContent = '—';
-  }
-}
-
-// ── Sky canvas ────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// DRAW — sun-centered projection
+// ═══════════════════════════════════════════════
 function drawSky() {
-  const canvas = document.getElementById('sky');
-  const wrap = document.getElementById('skyWrap');
-  const W = wrap.clientWidth, H = wrap.clientHeight - 64;
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-  const cx = W/2, cy = H/2;
-  const R = Math.min(W, H) * 0.44;
+  const canvas=document.getElementById('sky');
+  const wrap=document.getElementById('skyWrap');
+  const W=wrap.clientWidth, H=wrap.clientHeight;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
 
-  ctx.clearRect(0, 0, W, H);
+  const {sunAz,sunEl,aircraft,lat,lon,selectedIcao,threshold}=S;
+  const sb=document.getElementById('sunBelow');
 
-  // Horizon circle
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  if (sunAz==null||sunEl==null) { sb.style.display='flex'; return; }
+  if (sunEl<-2) { sb.style.display='flex'; return; }
+  sb.style.display='none';
 
-  // Grid rings (30, 60 elevation)
-  [30, 60].forEach(el => {
-    const r = R * (1 - el/90);
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.font = '9px Space Mono';
-    ctx.fillText(el + '°', cx + r + 3, cy - 3);
-  });
+  const cx=W/2, cy=H/2;
+  // Scale: pixels per degree. Show ±15° around sun.
+  const VIEW=15;
+  const scale=Math.min(W,H)/2/VIEW;
 
-  // Compass labels
-  const labels = [{l:'N',a:0},{l:'O',a:90},{l:'S',a:180},{l:'W',a:270}];
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = '10px Space Mono';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  labels.forEach(({l,a}) => {
-    const ang = deg2rad(a - 90);
-    const x = cx + (R+18) * Math.cos(ang), y = cy + (R+18) * Math.sin(ang);
-    ctx.fillText(l, x, y);
-  });
-
-  const { sunAz, sunEl } = state;
-
-  // Helper: az/el → canvas x,y
-  function toXY(az, el) {
-    if (el < -2) return null;
-    const r = Math.max(0, R * (1 - Math.min(el, 90) / 90));
-    const ang = deg2rad(az - 90);
-    return { x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang) };
+  // Project: convert az/el to canvas coords relative to sun at center
+  function proj(az, el) {
+    // Angular offsets in degrees (small-angle friendly for <20°)
+    const dAz = ((az-sunAz+540)%360-180)*Math.cos(sunEl*D2R);
+    const dEl = el - sunEl;
+    return { x: cx + dAz*scale, y: cy - dEl*scale };
   }
 
-  // Draw sun
-  const sunXY = toXY(sunAz, sunEl);
-  if (sunXY) {
-    // Sun halo
-    const grad = ctx.createRadialGradient(sunXY.x, sunXY.y, 4, sunXY.x, sunXY.y, 28);
-    grad.addColorStop(0, 'rgba(255,208,60,0.25)');
-    grad.addColorStop(1, 'rgba(255,208,60,0)');
-    ctx.beginPath();
-    ctx.arc(sunXY.x, sunXY.y, 28, 0, Math.PI*2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    // Sun disc
-    ctx.beginPath();
-    ctx.arc(sunXY.x, sunXY.y, 11, 0, Math.PI*2);
-    ctx.fillStyle = '#ffd060';
-    ctx.fill();
-    // Angular threshold ring
-    const threshR = R * state.threshold / 90;
-    ctx.beginPath();
-    ctx.arc(sunXY.x, sunXY.y, threshR, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(245,166,35,0.3)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  } else {
-    // Sun below horizon
-    document.getElementById('skyLeft').textContent = 'Sonne unter dem Horizont';
-  }
-
-  // Draw aircraft
-  const { aircraft, lat, lon, selectedIcao } = state;
-  aircraft.forEach(ac => {
-    const pos = acAzEl(lat, lon, ac.latitude, ac.longitude, ac.geo_altitude);
-    const xy = toXY(pos.az, pos.el);
-    if (!xy) return;
-    const isSel = ac.icao24 === selectedIcao;
-    const pred = predictTransit(ac, lat, lon, sunAz, sunEl);
-    const isTransit = pred && pred.minSep <= 0.5;
-    const isClose = pred && pred.minSep <= state.threshold;
-
-    // Flight path prediction arc
-    if (isSel && pred && ac.velocity && ac.true_track) {
-      const hdg = deg2rad(ac.true_track);
-      const pts = [];
-      for (let i = 0; i <= 60; i++) {
-        const t = i * 10;
-        const dkm = (ac.velocity * t) / 1000;
-        const dlat = (dkm / 111.32) * Math.cos(hdg);
-        const dlon = (dkm / (111.32 * Math.cos(deg2rad(ac.latitude)))) * Math.sin(hdg);
-        const nPos = acAzEl(lat, lon, ac.latitude+dlat, ac.longitude+dlon, ac.geo_altitude);
-        const nxy = toXY(nPos.az, nPos.el);
-        if (nxy) pts.push(nxy);
-      }
-      if (pts.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        pts.forEach(p => ctx.lineTo(p.x, p.y));
-        ctx.strokeStyle = isTransit ? 'rgba(76,175,130,0.5)' : isClose ? 'rgba(245,166,35,0.4)' : 'rgba(91,156,246,0.3)';
-        ctx.lineWidth = isSel ? 1.5 : 1;
-        ctx.setLineDash([3, 5]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
+  // Grid rings
+  [0.25, 0.5, 1, 2, 5, 10].forEach(deg=>{
+    const r=deg*scale;
+    if (r>Math.hypot(W,H)) return;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    if (deg===0.5) {
+      ctx.strokeStyle='rgba(255,208,60,0.4)';
+      ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    } else {
+      ctx.strokeStyle='rgba(255,255,255,0.07)';
+      ctx.lineWidth=0.5; ctx.setLineDash([]);
     }
+    ctx.stroke(); ctx.setLineDash([]);
+    if (deg>=1&&r<Math.min(W,H)*0.9) {
+      ctx.fillStyle='rgba(255,255,255,0.18)';
+      ctx.font='9px Space Mono'; ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText(deg+'°', cx+r+3, cy);
+    }
+  });
 
-    // Closest approach marker
-    if (isSel && pred && pred.minSepT !== null) {
-      const t = pred.minSepT;
-      const hdg = deg2rad(ac.true_track || 0);
-      const dkm = (ac.velocity * t) / 1000;
-      const dlat = (dkm / 111.32) * Math.cos(hdg);
-      const dlon = (dkm / (111.32 * Math.cos(deg2rad(ac.latitude)))) * Math.sin(hdg);
-      const mPos = acAzEl(lat, lon, ac.latitude+dlat, ac.longitude+dlon, ac.geo_altitude);
-      const mxy = toXY(mPos.az, mPos.el);
-      if (mxy) {
-        ctx.beginPath();
-        ctx.arc(mxy.x, mxy.y, 6, 0, Math.PI*2);
-        ctx.strokeStyle = isTransit ? '#4caf82' : '#f5a623';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        // Separation line to sun
-        if (sunXY) {
-          ctx.beginPath();
-          ctx.moveTo(mxy.x, mxy.y);
-          ctx.lineTo(sunXY.x, sunXY.y);
-          ctx.strokeStyle = isTransit ? 'rgba(76,175,130,0.4)' : 'rgba(245,166,35,0.3)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          // Sep label
-          const mx = (mxy.x + sunXY.x) / 2, my = (mxy.y + sunXY.y) / 2;
-          ctx.fillStyle = isTransit ? '#4caf82' : '#f5a623';
-          ctx.font = 'bold 10px Space Mono';
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText(pred.minSep.toFixed(2) + '°', mx, my - 8);
-        }
+  // Cardinal labels around the view
+  const labelR=Math.min(W,H)/2-12;
+  ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.font='9px Space Mono';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  // N is up on screen = sun elevation direction
+  ctx.fillText('N', cx, cy-labelR);
+  ctx.fillText('S', cx, cy+labelR);
+  ctx.fillText('O', cx+labelR, cy);
+  ctx.fillText('W', cx-labelR, cy);
+
+  // ── Sun disc ──
+  // Outer glow
+  const g=ctx.createRadialGradient(cx,cy,2,cx,cy,32);
+  g.addColorStop(0,'rgba(255,224,80,0.5)');
+  g.addColorStop(0.3,'rgba(255,200,50,0.2)');
+  g.addColorStop(1,'rgba(255,180,0,0)');
+  ctx.beginPath(); ctx.arc(cx,cy,32,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+  // Solar disc (~0.265° radius)
+  const sunR=Math.max(5, 0.265*scale);
+  ctx.beginPath(); ctx.arc(cx,cy,sunR,0,Math.PI*2);
+  ctx.fillStyle='#ffd060'; ctx.fill();
+
+  // ── Aircraft ──
+  aircraft.forEach(ac=>{
+    const pos=acAzEl(lat,lon,ac.latitude,ac.longitude,ac.geo_altitude);
+    if (pos.el<-15) return;
+    const sep=angSep(pos.az,pos.el,sunAz,sunEl);
+    if (sep>VIEW*1.5) return;
+    const pred=predict(ac,lat,lon,sunAz,sunEl);
+    const ms=pred?pred.minSep:sep;
+    const isT=ms<=0.5, isC=ms<=threshold, isSel=ac.icao24===selectedIcao;
+
+    const p=proj(pos.az,pos.el);
+
+    // Predicted path (selected only)
+    if (isSel&&ac.velocity>10&&ac.true_track!=null) {
+      const hdg=ac.true_track*D2R;
+      const pts=[];
+      for(let i=0;i<=120;i++){
+        const t=i*15, dkm=ac.velocity*t/1000;
+        const dLa=dkm/111.32*Math.cos(hdg);
+        const dLo=dkm/(111.32*Math.cos(ac.latitude*D2R))*Math.sin(hdg);
+        const np=acAzEl(lat,lon,ac.latitude+dLa,ac.longitude+dLo,ac.geo_altitude);
+        if(angSep(np.az,np.el,sunAz,sunEl)>VIEW*1.5) continue;
+        pts.push(proj(np.az,np.el));
+      }
+      if(pts.length>1){
+        ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+        pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));
+        ctx.strokeStyle=isT?'rgba(78,203,141,0.6)':isC?'rgba(245,166,35,0.5)':'rgba(91,156,246,0.35)';
+        ctx.lineWidth=1.5; ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+      }
+      // Closest approach marker
+      if (pred) {
+        const t=pred.minSepT, dkm=ac.velocity*t/1000, hdg2=ac.true_track*D2R;
+        const dLa=dkm/111.32*Math.cos(hdg2);
+        const dLo=dkm/(111.32*Math.cos(ac.latitude*D2R))*Math.sin(hdg2);
+        const mp=acAzEl(lat,lon,ac.latitude+dLa,ac.longitude+dLo,ac.geo_altitude);
+        const m=proj(mp.az,mp.el);
+        // Dashed line to sun
+        ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(cx,cy);
+        ctx.strokeStyle=isT?'rgba(78,203,141,0.3)':'rgba(245,166,35,0.25)';
+        ctx.lineWidth=1; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
+        // Circle at closest point
+        ctx.beginPath(); ctx.arc(m.x,m.y,5,0,Math.PI*2);
+        ctx.strokeStyle=isT?'#4ecb8d':'#f5a623'; ctx.lineWidth=1.5; ctx.stroke();
+        // Distance label
+        ctx.fillStyle=isT?'#4ecb8d':'#f5a623';
+        ctx.font='bold 9px Space Mono'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+        const lx=(m.x+cx)/2, ly=Math.min(m.y,cy)-6;
+        ctx.fillText(pred.minSep.toFixed(2)+'°',lx,ly);
       }
     }
 
     // Plane icon
-    const color = isTransit ? '#4caf82' : isClose ? '#f5a623' : 'rgba(255,255,255,0.5)';
-    const size = isSel ? 10 : 6;
-    ctx.save();
-    ctx.translate(xy.x, xy.y);
-    ctx.rotate(deg2rad(ac.true_track || 0));
-    ctx.fillStyle = color;
+    const col=isT?'#4ecb8d':isC?'#f5a623':isSel?'#5b9cf6':'rgba(160,170,190,0.45)';
+    const sz=isSel?9:6;
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(ac.true_track*D2R);
+    ctx.fillStyle=col;
     ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size*0.6, size*0.4);
-    ctx.lineTo(0, size*0.1);
-    ctx.lineTo(-size*0.6, size*0.4);
-    ctx.closePath();
-    ctx.fill();
-    if (isSel) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
+    ctx.moveTo(0,-sz); ctx.lineTo(sz*0.55,sz*0.45); ctx.lineTo(0,sz*0.1); ctx.lineTo(-sz*0.55,sz*0.45);
+    ctx.closePath(); ctx.fill();
+    if(isSel||isT){ ctx.strokeStyle=col; ctx.lineWidth=1.2; ctx.stroke(); }
     ctx.restore();
 
-    // Label
-    if (isSel || isTransit || isClose) {
-      ctx.fillStyle = color;
-      ctx.font = (isSel ? 'bold ' : '') + '10px Space Mono';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-      ctx.fillText(ac.callsign, xy.x + 10, xy.y - 2);
+    // Callsign label
+    if(isSel||isT||isC){
+      ctx.fillStyle=col;
+      ctx.font=(isSel?'bold ':'')+'9px Space Mono';
+      ctx.textAlign='left'; ctx.textBaseline='bottom';
+      ctx.fillText(ac.callsign, p.x+9, p.y-2);
     }
   });
 
-  // Overlay text
-  document.getElementById('skyLeft').textContent =
-    `Az ${sunAz ? sunAz.toFixed(1)+'°' : '—'} | El ${sunEl ? sunEl.toFixed(1)+'°' : '—'}`;
-  document.getElementById('skyRight').textContent =
-    new Date().toLocaleTimeString('de-DE');
+  document.getElementById('infoTL').textContent = `☀  Az ${sunAz.toFixed(1)}°  El ${sunEl.toFixed(1)}°`;
+  document.getElementById('infoTR').textContent = new Date().toLocaleTimeString('de-DE');
 }
 
-// ── UI wiring ─────────────────────────────────────────────────────────────
-document.getElementById('geoBtn').addEventListener('click', () => {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    document.getElementById('lat').value = pos.coords.latitude.toFixed(5);
-    document.getElementById('lon').value = pos.coords.longitude.toFixed(5);
-    document.getElementById('locHint').textContent = 'GPS-Standort gesetzt. Jetzt "Starten" drücken.';
-  }, () => {
-    document.getElementById('locHint').textContent = 'GPS-Zugriff verweigert. Koordinaten manuell eingeben.';
+// ═══════════════════════════════════════════════
+// RENDER LIST
+// ═══════════════════════════════════════════════
+function renderList() {
+  const {aircraft,lat,lon,sunAz,sunEl,threshold,selectedIcao}=S;
+  const el=document.getElementById('acList');
+  if(!aircraft.length){el.innerHTML='<div class="empty">Keine Flugzeuge im Suchbereich.</div>';return;}
+
+  const scored=aircraft.map(ac=>{
+    const pos=acAzEl(lat,lon,ac.latitude,ac.longitude,ac.geo_altitude);
+    const sep=angSep(pos.az,pos.el,sunAz,sunEl);
+    const pred=predict(ac,lat,lon,sunAz,sunEl);
+    const km=haversine(lat,lon,ac.latitude,ac.longitude);
+    return{ac,pos,sep,pred,km};
+  }).sort((a,b)=>(a.pred?.minSep??99)-(b.pred?.minSep??99));
+
+  el.innerHTML='';
+  scored.slice(0,25).forEach(({ac,pos,sep,pred,km})=>{
+    const ms=pred?pred.minSep:sep;
+    const isT=ms<=0.5, isC=ms<=threshold, isSel=ac.icao24===selectedIcao;
+    const bw=Math.max(0,Math.min(100,(1-ms/15)*100));
+    const bc=isT?'#4ecb8d':isC?'#f5a623':'#5b9cf6';
+    const tag=isT?'<span class="tag t">TRANSIT</span>':isC?'<span class="tag n">NAH</span>':`<span class="tag f">${ms.toFixed(1)}°</span>`;
+    const col=isT?'var(--ok)':isC?'var(--warn)':'var(--text)';
+    const div=document.createElement('div');
+    div.className='acard'+(isSel?' sel':'')+(isT?' tr':'');
+    div.innerHTML=`
+      <div class="atop"><span class="acs" style="color:${col}">${ac.callsign}</span>${tag}</div>
+      <div class="abar-w"><div class="abar" style="width:${bw}%;background:${bc}"></div></div>
+      <div class="ameta"><span>${km.toFixed(0)}km</span><span>${(ac.geo_altitude/1000).toFixed(1)}km Höhe</span><span>in ${pred?fmtS(pred.minSepT):'—'}</span></div>`;
+    div.addEventListener('click',()=>{
+      S.selectedIcao=ac.icao24;
+      renderList(); updateDetail({ac,sep,pred}); drawSky();
+    });
+    el.appendChild(div);
   });
+
+  if(!S.selectedIcao&&scored.length){
+    S.selectedIcao=scored[0].ac.icao24;
+    updateDetail(scored[0]);
+  } else if(S.selectedIcao){
+    const s=scored.find(x=>x.ac.icao24===S.selectedIcao);
+    if(s) updateDetail(s);
+  }
+}
+
+function updateDetail({ac,sep,pred}){
+  const ms=pred?pred.minSep:sep;
+  const isT=ms<=0.5, isC=ms<=S.threshold;
+  const vc=(t,c,i)=>t?'ok':c?'w':'i';
+  document.getElementById('dCS').textContent=ac.callsign;
+  document.getElementById('dCS').className='v '+(isT?'ok':isC?'w':'i');
+  document.getElementById('dSep').textContent=sep.toFixed(2)+'°';
+  document.getElementById('dSep').className='v '+(sep<=0.5?'ok':sep<=S.threshold?'w':'i');
+  document.getElementById('dMin').textContent=ms.toFixed(2)+'°';
+  document.getElementById('dMin').className='v '+(isT?'ok':isC?'w':'i');
+  const eta=pred?pred.minSepT:null;
+  document.getElementById('dETA').textContent=fmtS(eta);
+  document.getElementById('dETA').className='v '+(eta!=null&&eta<60?'ok':eta!=null&&eta<300?'w':'i');
+  document.getElementById('dAlt').textContent=ac.geo_altitude?Math.round(ac.geo_altitude)+' m':'—';
+}
+
+// ═══════════════════════════════════════════════
+// UPDATE LOOP
+// ═══════════════════════════════════════════════
+function updateSunDisplay(){
+  if(S.lat==null) return;
+  const sp=sunPos(Date.now(),S.lat,S.lon);
+  const t=sunTimes(S.lat,S.lon);
+  S.sunAz=sp.az; S.sunEl=sp.el;
+  document.getElementById('sAz').textContent=sp.az.toFixed(1)+'°';
+  document.getElementById('sEl').textContent=sp.el.toFixed(1)+'°';
+  document.getElementById('sRise').textContent=t.rise?hm(t.rise):'—';
+  document.getElementById('sSet').textContent=t.set?hm(t.set):'—';
+}
+
+async function update(){
+  if(!S.active) return;
+  setPill('stPill','','Lade...');
+  const ac=await fetchAircraft();
+  if(ac===null){ setPill('stPill','err','API-Fehler'); return; }
+  S.aircraft=ac;
+  updateSunDisplay();
+  renderList(); drawSky();
+  document.getElementById('lastUpd').textContent=new Date().toLocaleTimeString('de-DE');
+  setPill('stPill','live',ac.length+' Flugzeuge');
+  setPill('apiPill','live',S.apiSource);
+}
+
+function setPill(id,cls,txt){
+  const e=document.getElementById(id);
+  e.className='pill '+cls;
+  e.querySelector('span').textContent=txt;
+}
+
+// ═══════════════════════════════════════════════
+// DMS UI
+// ═══════════════════════════════════════════════
+function refreshDmsOut(){
+  const latD=document.getElementById('latD').value;
+  if(!latD) return;
+  const lat=dmsToDec(document.getElementById('latD').value,document.getElementById('latM').value,document.getElementById('latS').value,document.getElementById('latH').value);
+  const lon=dmsToDec(document.getElementById('lonD').value,document.getElementById('lonM').value,document.getElementById('lonS').value,document.getElementById('lonH').value);
+  if(!isNaN(lat)&&!isNaN(lon))
+    document.getElementById('dmsOut').textContent=decToDMS(lat,true)+'  '+decToDMS(lon,false);
+}
+
+function fillDms(lat,lon){
+  const la=Math.abs(lat),lo=Math.abs(lon);
+  const lad=Math.floor(la),lam=Math.floor((la-lad)*60),las=((la-lad)*60-lam)*60;
+  const lod=Math.floor(lo),lom=Math.floor((lo-lod)*60),los=((lo-lod)*60-lom)*60;
+  document.getElementById('latD').value=lad;
+  document.getElementById('latM').value=lam;
+  document.getElementById('latS').value=las.toFixed(1);
+  document.getElementById('latH').value=lat>=0?'N':'S';
+  document.getElementById('lonD').value=lod;
+  document.getElementById('lonM').value=lom;
+  document.getElementById('lonS').value=los.toFixed(1);
+  document.getElementById('lonH').value=lon>=0?'E':'W';
+  refreshDmsOut();
+}
+
+['latD','latM','latS','latH','lonD','lonM','lonS','lonH'].forEach(id=>
+  document.getElementById(id).addEventListener('input',refreshDmsOut));
+
+// ═══════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════
+document.getElementById('gpsBtn').addEventListener('click',()=>{
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(p=>fillDms(p.coords.latitude,p.coords.longitude),
+    ()=>alert('GPS-Zugriff verweigert'));
 });
 
-document.getElementById('startBtn').addEventListener('click', () => {
-  state.lat = parseFloat(document.getElementById('lat').value);
-  state.lon = parseFloat(document.getElementById('lon').value);
-  if (isNaN(state.lat) || isNaN(state.lon)) {
-    document.getElementById('locHint').textContent = 'Ungültige Koordinaten!';
-    return;
-  }
-  document.getElementById('noLocOverlay').style.display = 'none';
-  document.getElementById('locHint').textContent = `Tracking aktiv: ${state.lat.toFixed(4)}, ${state.lon.toFixed(4)}`;
-  state.active = true;
-  if (state.intervalId) clearInterval(state.intervalId);
-  if (state.sunIntervalId) clearInterval(state.sunIntervalId);
+document.getElementById('startBtn').addEventListener('click',()=>{
+  const lat=dmsToDec(document.getElementById('latD').value,document.getElementById('latM').value,document.getElementById('latS').value,document.getElementById('latH').value);
+  const lon=dmsToDec(document.getElementById('lonD').value,document.getElementById('lonM').value,document.getElementById('lonS').value,document.getElementById('lonH').value);
+  if(isNaN(lat)||isNaN(lon)||lat<-90||lat>90||lon<-180||lon>180)
+    return alert('Ungültige Koordinaten');
+  S.lat=lat; S.lon=lon; S.active=true; S.selectedIcao=null;
+  if(S.timerA) clearInterval(S.timerA);
+  if(S.timerS) clearInterval(S.timerS);
+  updateSunDisplay();
   update();
-  state.intervalId = setInterval(update, state.intervalSec * 1000);
-  state.sunIntervalId = setInterval(() => { updateSun(); drawSky(); }, 5000);
+  S.timerA=setInterval(update, S.intervalSec*1000);
+  S.timerS=setInterval(()=>{ updateSunDisplay(); drawSky(); }, 4000);
 });
 
-document.getElementById('refreshBtn').addEventListener('click', update);
+document.getElementById('refBtn').addEventListener('click',update);
 
-document.getElementById('threshSlider').addEventListener('input', function() {
-  state.threshold = parseFloat(this.value);
-  document.getElementById('threshVal').textContent = state.threshold.toFixed(1) + '°';
-  if (state.active) { renderCandidates(); drawSky(); }
+document.getElementById('thrSlider').addEventListener('input',function(){
+  S.threshold=parseFloat(this.value);
+  document.getElementById('thrV').textContent=S.threshold.toFixed(1)+'°';
+  if(S.active){renderList();drawSky();}
+});
+document.getElementById('radSlider').addEventListener('input',function(){
+  S.radius=parseInt(this.value);
+  document.getElementById('radV').textContent=S.radius+' km';
+});
+document.getElementById('intSlider').addEventListener('input',function(){
+  S.intervalSec=parseInt(this.value);
+  document.getElementById('intV').textContent=S.intervalSec+' s';
+  if(S.active&&S.timerA){clearInterval(S.timerA);S.timerA=setInterval(update,S.intervalSec*1000);}
 });
 
-document.getElementById('radiusSlider').addEventListener('input', function() {
-  state.radius = parseInt(this.value);
-  document.getElementById('radiusVal').textContent = state.radius + ' km';
-});
+window.addEventListener('resize',()=>{if(S.active)drawSky();});
 
-document.getElementById('intervalSlider').addEventListener('input', function() {
-  state.intervalSec = parseInt(this.value);
-  document.getElementById('intervalVal').textContent = state.intervalSec + ' s';
-  if (state.active && state.intervalId) {
-    clearInterval(state.intervalId);
-    state.intervalId = setInterval(update, state.intervalSec * 1000);
-  }
-});
-
-// Resize
-window.addEventListener('resize', () => { if (state.active) drawSky(); });
-
-// Init sun display
-updateSun();
+// Prefill Aachen
+fillDms(50.7753, 6.0839);
 </script>
 </body>
 </html>
