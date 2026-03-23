@@ -363,7 +363,7 @@ function parseAc(arr) {
   })).filter(a =>
     a.latitude!=null && a.longitude!=null &&
     !a.on_ground && a.geo_altitude>100 && a.icao24
-  );
+  ).map(a=>({...a, fetchedAt:Date.now()}));
 }
 
 async function tf(url,ms=9000){
@@ -399,8 +399,27 @@ const S = {
   aircraft:[],selectedIcao:null,
   sunAz:null,sunEl:null,
   threshold:1.5,radius:150,intervalSec:8,
-  tA:null,tS:null,apiSource:''
+  tA:null,tS:null,tDR:null,apiSource:''
 };
+
+// ═══════════════════════════════════
+// DEAD RECKONING
+// Extrapolates aircraft position forward from fetchedAt timestamp
+// ═══════════════════════════════════
+function deadReckon(ac) {
+  if (!ac.fetchedAt || !ac.velocity || ac.velocity < 5 || ac.true_track == null) return ac;
+  const age = (Date.now() - ac.fetchedAt) / 1000;
+  if (age <= 0 || age > 90) return ac;
+  const dkm = ac.velocity * age / 1000;
+  const hdgR = ac.true_track * R;
+  const cosLat = Math.cos(ac.latitude * R);
+  return {
+    ...ac,
+    latitude:  ac.latitude  + (dkm / 111.32) * Math.cos(hdgR),
+    longitude: ac.longitude + (dkm / (111.32 * cosLat)) * Math.sin(hdgR),
+    _age: Math.round(age)
+  };
+}
 
 // ═══════════════════════════════════
 // DEBUG
@@ -514,7 +533,8 @@ function drawSky(){
 
   // ── Aircraft ──
   let drawnCount=0;
-  aircraft.forEach(ac=>{
+  aircraft.forEach(raw=>{
+    const ac=deadReckon(raw);
     const pos=acAzEl(lat,lon,ac.latitude,ac.longitude,ac.geo_altitude);
     if(pos.el<-5)return;
     const sep=angSep(pos.az,pos.el,sunAz,sunEl);
@@ -602,7 +622,8 @@ function renderList(){
   const el=document.getElementById('acList');
   if(!aircraft.length){el.innerHTML='<div class="emp">Keine Flugzeuge im Suchbereich.</div>';return;}
 
-  const scored=aircraft.map(ac=>{
+  const scored=aircraft.map(raw=>{
+    const ac=deadReckon(raw);
     const pos=acAzEl(lat,lon,ac.latitude,ac.longitude,ac.geo_altitude);
     const sep=angSep(pos.az,pos.el,sunAz,sunEl);
     const pred=predict(ac,lat,lon,sunAz,sunEl);
@@ -758,7 +779,18 @@ document.getElementById('startBtn').addEventListener('click',()=>{
   updateSun();
   update();
   S.tA=setInterval(update,S.intervalSec*1000);
-  S.tS=setInterval(()=>{updateSun();drawSky();},3000);
+  S.tS=setInterval(()=>{
+    updateSun();
+    if(S.aircraft.length){
+      renderList();
+    }
+    drawSky();
+    // Show data age in refresh row
+    if(S.aircraft.length && S.aircraft[0].fetchedAt){
+      const age=Math.round((Date.now()-S.aircraft[0].fetchedAt)/1000);
+      document.getElementById('lastU').textContent='Daten: '+age+'s alt';
+    }
+  },2000);
 });
 
 document.getElementById('refBtn').addEventListener('click',update);
