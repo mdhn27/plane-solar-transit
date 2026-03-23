@@ -4,165 +4,98 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solar Transit Finder</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:     #090b0f;
-  --bg2:    #10131a;
-  --bg3:    #181c26;
-  --border: rgba(255,255,255,0.07);
-  --bord2:  rgba(255,255,255,0.13);
-  --text:   #dde1ec;
-  --muted:  #7a8399;
-  --sun:    #ffd060;
-  --ok:     #4ecb8d;
-  --warn:   #f5a623;
-  --info:   #5b9cf6;
-  --danger: #e05c5c;
-  --mono: 'Space Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
+:root{
+  --bg:#090b0f;--bg2:#0f1219;--bg3:#161a24;
+  --b:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.13);
+  --tx:#dde1ec;--mu:#7a8399;
+  --sun:#ffd060;--ok:#4ecb8d;--wa:#f5a623;--inf:#5b9cf6;--er:#e05c5c;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-
-header {
-  height: 50px; flex-shrink: 0;
-  display: flex; align-items: center; gap: 12px; padding: 0 18px;
-  border-bottom: 1px solid var(--border);
-}
-.logo { width: 26px; height: 26px; flex-shrink: 0; }
-header h1 { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.07em; }
-header h1 em { color: var(--sun); font-style: normal; }
-.pills { margin-left: auto; display: flex; gap: 6px; }
-.pill {
-  font-family: var(--mono); font-size: 9px;
-  padding: 3px 8px; border-radius: 20px;
-  border: 1px solid var(--bord2); color: var(--muted);
-  display: flex; align-items: center; gap: 4px;
-}
-.pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
-.pill.live { color: var(--ok); border-color: rgba(78,203,141,0.3); }
-.pill.live .dot { background: var(--ok); }
-.pill.err  { color: var(--danger); border-color: rgba(224,92,92,0.3); }
-.pill.err .dot { background: var(--danger); }
-
-.app { flex: 1; display: flex; overflow: hidden; }
-
-.sidebar {
-  width: 296px; flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; overflow: hidden;
-}
-
-.sec { padding: 12px 14px; border-bottom: 1px solid var(--border); }
-.slbl { font-family: var(--mono); font-size: 9px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
-
-.dms-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
-.dms-lbl { font-family: var(--mono); font-size: 10px; color: var(--muted); width: 12px; flex-shrink: 0; }
-.dms-fields { display: flex; gap: 2px; flex: 1; align-items: center; }
-.dms-fields input {
-  flex: 1; min-width: 0; background: var(--bg3);
-  border: 1px solid var(--border); border-radius: 4px;
-  padding: 5px 4px; color: var(--text);
-  font-family: var(--mono); font-size: 10px; outline: none; text-align: center;
-}
-.dms-fields input:focus { border-color: var(--warn); }
-.dms-fields input::placeholder { color: var(--muted); opacity: 0.6; }
-.dms-unit { font-size: 9px; color: var(--muted); font-family: var(--mono); flex-shrink: 0; }
-.dms-fields select {
-  background: var(--bg3); border: 1px solid var(--border); border-radius: 4px;
-  color: var(--text); font-family: var(--mono); font-size: 10px; padding: 5px 3px; outline: none;
-}
-.dms-out { font-family: var(--mono); font-size: 10px; color: var(--sun); text-align: center; margin: 5px 0 8px; min-height: 13px; }
-.btnrow { display: flex; gap: 5px; }
-.btn {
-  flex: 1; background: var(--bg3); border: 1px solid var(--bord2);
-  border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 10px;
-  padding: 6px 8px; cursor: pointer; transition: all 0.12s;
-}
-.btn:hover { background: var(--bg2); border-color: var(--warn); color: var(--warn); }
-.btn.p { background: rgba(245,166,35,0.1); border-color: rgba(245,166,35,0.4); color: var(--warn); }
-.btn.p:hover { background: rgba(245,166,35,0.2); }
-
-.sungrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-.suncell { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; }
-.suncell .v { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--sun); }
-.suncell .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
-
-.srow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
-.srow:last-child { margin-bottom: 0; }
-.srow span { font-size: 11px; color: var(--muted); }
-.sv { font-family: var(--mono); font-size: 11px; color: var(--text); }
-input[type=range] {
-  -webkit-appearance: none; width: 100%; height: 3px;
-  background: var(--bg3); border-radius: 2px; outline: none; margin-top: 2px;
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 12px; height: 12px;
-  border-radius: 50%; background: var(--warn); cursor: pointer;
-}
-
-.aclist-hdr { padding: 8px 14px 3px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-.aclist { flex: 1; overflow-y: auto; }
-.aclist::-webkit-scrollbar { width: 3px; }
-.aclist::-webkit-scrollbar-thumb { background: var(--bord2); border-radius: 2px; }
-.empty { padding: 18px 14px; text-align: center; color: var(--muted); font-size: 11px; line-height: 1.7; }
-
-.acard {
-  padding: 9px 14px; border-bottom: 1px solid var(--border);
-  cursor: pointer; transition: background 0.1s; border-left: 2px solid transparent;
-}
-.acard:hover { background: var(--bg3); }
-.acard.sel { background: rgba(245,166,35,0.05); border-left-color: var(--warn); }
-.acard.tr  { border-left-color: var(--ok); background: rgba(78,203,141,0.04); }
-.atop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
-.acs { font-family: var(--mono); font-size: 11px; font-weight: 700; }
-.tag { font-family: var(--mono); font-size: 8px; padding: 2px 5px; border-radius: 3px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.05em; }
-.tag.t { color:var(--ok);   border-color:rgba(78,203,141,0.35); background:rgba(78,203,141,0.1); }
-.tag.n { color:var(--warn); border-color:rgba(245,166,35,0.35); background:rgba(245,166,35,0.1); }
-.tag.f { color:var(--muted);border-color:var(--border); }
-.abar-w { height: 2px; background: var(--bg3); border-radius: 1px; margin: 4px 0; }
-.abar   { height: 100%; border-radius: 1px; transition: width 0.5s; }
-.ameta  { display: flex; gap: 8px; font-size: 9px; color: var(--muted); font-family: var(--mono); }
-
-.refrow { padding: 7px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--muted); }
-
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.skywrap {
-  flex: 1; position: relative; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 50%, #0c1220 0%, #04060a 100%);
-}
-canvas#sky { display: block; }
-.infoTL, .infoTR {
-  position: absolute; top: 10px; pointer-events: none;
-  font-family: var(--mono); font-size: 9px; color: rgba(255,255,255,0.22); line-height: 1.9;
-}
-.infoTL { left: 12px; }
-.infoTR { right: 12px; text-align: right; }
-.sunbelow {
-  position: absolute; inset: 0; display: none;
-  align-items: center; justify-content: center; flex-direction: column; gap: 8px;
-  font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: center;
-}
-
-.detbar {
-  flex-shrink: 0; border-top: 1px solid var(--border);
-  background: var(--bg2); padding: 9px 18px;
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
-}
-.ds .v { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--text); }
-.ds .v.ok { color: var(--ok); }
-.ds .v.w  { color: var(--warn); }
-.ds .v.i  { color: var(--info); }
-.ds .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+/* HEADER */
+header{height:48px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--b)}
+header h1{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.07em}
+header h1 em{color:var(--sun);font-style:normal}
+.pills{margin-left:auto;display:flex;gap:5px}
+.pill{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:20px;border:1px solid var(--b2);color:var(--mu);display:flex;align-items:center;gap:4px}
+.pill .d{width:5px;height:5px;border-radius:50%;background:var(--mu);flex-shrink:0}
+.pill.ok{color:var(--ok);border-color:rgba(78,203,141,.3)}.pill.ok .d{background:var(--ok)}
+.pill.er{color:var(--er);border-color:rgba(224,92,92,.3)}.pill.er .d{background:var(--er)}
+/* LAYOUT */
+.app{flex:1;display:flex;overflow:hidden}
+/* SIDEBAR */
+.sb{width:290px;flex-shrink:0;border-right:1px solid var(--b);display:flex;flex-direction:column;overflow:hidden}
+.sec{padding:11px 13px;border-bottom:1px solid var(--b)}
+.slbl{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--mu);margin-bottom:8px}
+/* DMS inputs */
+.drow{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.dlbl{font-family:var(--mono);font-size:10px;color:var(--mu);width:11px;flex-shrink:0}
+.dfi{display:flex;gap:2px;flex:1;align-items:center}
+.dfi input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--b);border-radius:4px;padding:5px 3px;color:var(--tx);font-family:var(--mono);font-size:10px;outline:none;text-align:center}
+.dfi input:focus{border-color:var(--wa)}
+.dfi input::placeholder{color:var(--mu);opacity:.5}
+.dfi select{background:var(--bg3);border:1px solid var(--b);border-radius:4px;color:var(--tx);font-family:var(--mono);font-size:10px;padding:5px 2px;outline:none}
+.du{font-size:9px;color:var(--mu);font-family:var(--mono);flex-shrink:0}
+.dout{font-family:var(--mono);font-size:10px;color:var(--sun);text-align:center;margin:4px 0 7px;min-height:13px}
+.brow{display:flex;gap:5px}
+.btn{flex:1;background:var(--bg3);border:1px solid var(--b2);border-radius:4px;color:var(--tx);font-family:var(--mono);font-size:10px;padding:6px 8px;cursor:pointer;transition:all .12s}
+.btn:hover{background:var(--bg2);border-color:var(--wa);color:var(--wa)}
+.btn.p{background:rgba(245,166,35,.1);border-color:rgba(245,166,35,.4);color:var(--wa)}
+/* Sun grid */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.sc{background:var(--bg3);border:1px solid var(--b);border-radius:4px;padding:6px 8px}
+.sc .v{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--sun)}
+.sc .l{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+/* Settings */
+.sr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sr span{font-size:11px;color:var(--mu)}.sv{font-family:var(--mono);font-size:11px;color:var(--tx)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--bg3);border-radius:2px;outline:none;margin-top:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--wa);cursor:pointer}
+/* Aircraft list */
+.alh{padding:7px 13px 3px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.al{flex:1;overflow-y:auto}
+.al::-webkit-scrollbar{width:3px}.al::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.emp{padding:16px 13px;text-align:center;color:var(--mu);font-size:11px;line-height:1.7}
+.ac{padding:8px 13px;border-bottom:1px solid var(--b);cursor:pointer;transition:background .1s;border-left:2px solid transparent}
+.ac:hover{background:var(--bg3)}
+.ac.sel{background:rgba(245,166,35,.05);border-left-color:var(--wa)}
+.ac.tr{border-left-color:var(--ok);background:rgba(78,203,141,.04)}
+.atp{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.acs{font-family:var(--mono);font-size:11px;font-weight:700}
+.tag{font-family:var(--mono);font-size:8px;padding:2px 5px;border-radius:3px;border:1px solid;text-transform:uppercase;letter-spacing:.05em}
+.tag.t{color:var(--ok);border-color:rgba(78,203,141,.35);background:rgba(78,203,141,.1)}
+.tag.n{color:var(--wa);border-color:rgba(245,166,35,.35);background:rgba(245,166,35,.1)}
+.tag.f{color:var(--mu);border-color:var(--b)}
+.abw{height:2px;background:var(--bg3);border-radius:1px;margin:3px 0}
+.ab{height:100%;border-radius:1px;transition:width .5s}
+.am{display:flex;gap:8px;font-size:9px;color:var(--mu);font-family:var(--mono)}
+.rr{padding:6px 13px;border-top:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--mu)}
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.skywrap{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#0c1220 0%,#04060a 100%)}
+canvas#sky{display:block}
+.itl,.itr{position:absolute;top:10px;pointer-events:none;font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.22);line-height:1.9}
+.itl{left:12px}.itr{right:12px;text-align:right}
+.sbelow{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-family:var(--mono);font-size:11px;color:var(--mu);text-align:center;pointer-events:none}
+/* Detail bar */
+.det{flex-shrink:0;border-top:1px solid var(--b);background:var(--bg2);padding:8px 16px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ds .v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--tx)}
+.ds .v.ok{color:var(--ok)}.ds .v.wa{color:var(--wa)}.ds .v.in{color:var(--inf)}
+.ds .l{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+/* Debug panel */
+.dbg{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);border-top:1px solid rgba(255,165,0,.3);padding:8px 12px;font-family:var(--mono);font-size:9px;color:rgba(255,165,0,.8);line-height:1.8;max-height:140px;overflow-y:auto;display:none}
+.dbg.show{display:block}
+.dbg-toggle{position:absolute;bottom:4px;right:4px;font-family:var(--mono);font-size:9px;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);border-radius:3px;color:var(--wa);padding:2px 6px;cursor:pointer;z-index:10}
 </style>
 </head>
 <body>
-
 <header>
-  <svg class="logo" viewBox="0 0 26 26" fill="none">
+  <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
     <circle cx="13" cy="13" r="5" fill="#ffd060"/>
-    <circle cx="13" cy="13" r="8" stroke="#ffd060" stroke-width="0.6" stroke-dasharray="2 2.5" opacity="0.55"/>
+    <circle cx="13" cy="13" r="8" stroke="#ffd060" stroke-width=".6" stroke-dasharray="2 2.5" opacity=".55"/>
     <line x1="13" y1="2" x2="13" y2="5" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
     <line x1="13" y1="21" x2="13" y2="24" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
     <line x1="2" y1="13" x2="5" y2="13" stroke="#ffd060" stroke-width="1.3" stroke-linecap="round"/>
@@ -170,417 +103,504 @@ canvas#sky { display: block; }
   </svg>
   <h1>Solar<em>Transit</em>Finder</h1>
   <div class="pills">
-    <div class="pill" id="apiPill"><div class="dot"></div><span id="apiTxt">—</span></div>
-    <div class="pill" id="stPill"><div class="dot"></div><span id="stTxt">Standort eingeben</span></div>
+    <div class="pill" id="apiP"><div class="d"></div><span id="apiT">—</span></div>
+    <div class="pill" id="stP"><div class="d"></div><span id="stT">Standort eingeben</span></div>
   </div>
 </header>
 
 <div class="app">
-  <div class="sidebar">
-
+  <div class="sb">
     <div class="sec">
       <div class="slbl">Beobachterstandort</div>
-
-      <div class="dms-row">
-        <span class="dms-lbl">φ</span>
-        <div class="dms-fields">
-          <input type="number" id="latD" placeholder="°" min="0" max="89" step="1">
-          <span class="dms-unit">°</span>
-          <input type="number" id="latM" placeholder="'" min="0" max="59" step="1">
-          <span class="dms-unit">'</span>
-          <input type="number" id="latS" placeholder='"' min="0" max="59.9" step="0.1">
-          <span class="dms-unit">"</span>
-          <select id="latH"><option>N</option><option>S</option></select>
+      <div class="drow">
+        <span class="dlbl">φ</span>
+        <div class="dfi">
+          <input type="number" id="lad" placeholder="°" min="0" max="89" step="1">
+          <span class="du">°</span>
+          <input type="number" id="lam" placeholder="'" min="0" max="59" step="1">
+          <span class="du">'</span>
+          <input type="number" id="las" placeholder='"' min="0" max="59.9" step="0.1">
+          <span class="du">"</span>
+          <select id="lah"><option>N</option><option>S</option></select>
         </div>
       </div>
-
-      <div class="dms-row">
-        <span class="dms-lbl">λ</span>
-        <div class="dms-fields">
-          <input type="number" id="lonD" placeholder="°" min="0" max="179" step="1">
-          <span class="dms-unit">°</span>
-          <input type="number" id="lonM" placeholder="'" min="0" max="59" step="1">
-          <span class="dms-unit">'</span>
-          <input type="number" id="lonS" placeholder='"' min="0" max="59.9" step="0.1">
-          <span class="dms-unit">"</span>
-          <select id="lonH"><option>E</option><option>W</option></select>
+      <div class="drow">
+        <span class="dlbl">λ</span>
+        <div class="dfi">
+          <input type="number" id="lod" placeholder="°" min="0" max="179" step="1">
+          <span class="du">°</span>
+          <input type="number" id="lom" placeholder="'" min="0" max="59" step="1">
+          <span class="du">'</span>
+          <input type="number" id="los" placeholder='"' min="0" max="59.9" step="0.1">
+          <span class="du">"</span>
+          <select id="loh"><option>E</option><option>W</option></select>
         </div>
       </div>
-
-      <div class="dms-out" id="dmsOut">—</div>
-      <div class="btnrow">
-        <button class="btn p" id="gpsBtn">GPS-Standort</button>
-        <button class="btn"   id="startBtn">Starten</button>
+      <div class="dout" id="dout">—</div>
+      <div class="brow">
+        <button class="btn p" id="gpsBtn">GPS</button>
+        <button class="btn" id="startBtn">Starten</button>
       </div>
     </div>
 
     <div class="sec">
-      <div class="slbl">Sonne — aktuell</div>
-      <div class="sungrid">
-        <div class="suncell"><div class="v" id="sAz">—</div><div class="l">Azimut</div></div>
-        <div class="suncell"><div class="v" id="sEl">—</div><div class="l">Elevation</div></div>
-        <div class="suncell"><div class="v" id="sRise">—</div><div class="l">Aufgang</div></div>
-        <div class="suncell"><div class="v" id="sSet">—</div><div class="l">Untergang</div></div>
+      <div class="slbl">Sonne — jetzt</div>
+      <div class="sg">
+        <div class="sc"><div class="v" id="sAz">—</div><div class="l">Azimut</div></div>
+        <div class="sc"><div class="v" id="sEl">—</div><div class="l">Elevation</div></div>
+        <div class="sc"><div class="v" id="sRi">—</div><div class="l">Aufgang</div></div>
+        <div class="sc"><div class="v" id="sSe">—</div><div class="l">Untergang</div></div>
       </div>
     </div>
 
     <div class="sec">
       <div class="slbl">Einstellungen</div>
-      <div class="srow"><span>Schwellwert Winkelabstand</span><span class="sv" id="thrV">1.5°</span></div>
-      <input type="range" id="thrSlider" min="0.2" max="5" step="0.1" value="1.5">
-      <div class="srow" style="margin-top:9px"><span>Suchradius</span><span class="sv" id="radV">150 km</span></div>
-      <input type="range" id="radSlider" min="30" max="300" step="10" value="150">
-      <div class="srow" style="margin-top:9px"><span>Update-Intervall</span><span class="sv" id="intV">8 s</span></div>
-      <input type="range" id="intSlider" min="5" max="30" step="1" value="8">
+      <div class="sr"><span>Winkel-Schwellwert</span><span class="sv" id="thrV">1.5°</span></div>
+      <input type="range" id="thrS" min="0.2" max="5" step="0.1" value="1.5">
+      <div class="sr" style="margin-top:8px"><span>Suchradius</span><span class="sv" id="radV">150 km</span></div>
+      <input type="range" id="radS" min="30" max="300" step="10" value="150">
+      <div class="sr" style="margin-top:8px"><span>Update-Intervall</span><span class="sv" id="intV">8 s</span></div>
+      <input type="range" id="intS" min="5" max="30" step="1" value="8">
     </div>
 
-    <div class="aclist-hdr">Flugzeuge — nach Transit-Wahrscheinlichkeit</div>
-    <div class="aclist" id="acList"><div class="empty">Starte das Tracking um Flugzeuge zu sehen.</div></div>
-    <div class="refrow">
-      <span id="lastUpd">—</span>
-      <button class="btn" id="refBtn" style="flex:0;padding:3px 8px;font-size:9px;">Refresh</button>
+    <div class="alh">Flugzeuge — sortiert nach min. Sonnenabstand</div>
+    <div class="al" id="acList"><div class="emp">Tracking starten um Flugzeuge zu laden.</div></div>
+    <div class="rr">
+      <span id="lastU">—</span>
+      <button class="btn" id="refBtn" style="flex:0;padding:3px 7px;font-size:9px">Refresh</button>
     </div>
   </div>
 
   <div class="main">
-    <div class="skywrap" id="skyWrap">
+    <div class="skywrap" id="sw">
       <canvas id="sky"></canvas>
-      <div class="infoTL" id="infoTL"></div>
-      <div class="infoTR" id="infoTR"></div>
-      <div class="sunbelow" id="sunBelow">
-        <div style="font-size:24px;opacity:0.3">☀</div>
+      <div class="itl" id="itl"></div>
+      <div class="itr" id="itr"></div>
+      <div class="sbelow" id="sb2">
+        <div style="font-size:28px;opacity:.25">☀</div>
         Sonne unter dem Horizont — kein Transit möglich
       </div>
     </div>
-    <div class="detbar">
-      <div class="ds"><div class="v i" id="dCS">—</div><div class="l">Rufzeichen</div></div>
-      <div class="ds"><div class="v i" id="dSep">—</div><div class="l">Akt. Abstand ☀</div></div>
-      <div class="ds"><div class="v i" id="dMin">—</div><div class="l">Min. Abstand</div></div>
-      <div class="ds"><div class="v i" id="dETA">—</div><div class="l">Transit in</div></div>
-      <div class="ds"><div class="v i" id="dAlt">—</div><div class="l">Flughöhe</div></div>
+    <div class="det">
+      <div class="ds"><div class="v in" id="dCS">—</div><div class="l">Rufzeichen</div></div>
+      <div class="ds"><div class="v in" id="dSp">—</div><div class="l">Akt. Abstand ☀</div></div>
+      <div class="ds"><div class="v in" id="dMn">—</div><div class="l">Min. Abstand</div></div>
+      <div class="ds"><div class="v in" id="dET">—</div><div class="l">Nächster Min. in</div></div>
+      <div class="ds"><div class="v in" id="dAl">—</div><div class="l">Flughöhe</div></div>
     </div>
+    <div class="dbg" id="dbg"></div>
+    <button class="dbg-toggle" id="dbgBtn">debug</button>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// SUN POSITION  (Jean Meeus)
-// ═══════════════════════════════════════════════
-function sunPos(date, lat, lon) {
-  const D2R = Math.PI / 180;
-  const JD  = date / 86400000 + 2440587.5;
-  const n   = JD - 2451545.0;
-  const L   = (280.460 + 0.9856474 * n) % 360;
-  const g   = (357.528 + 0.9856003 * n) * D2R;
-  const lam = (L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) * D2R;
-  const eps = 23.439 * D2R;
-  const RA  = Math.atan2(Math.cos(eps)*Math.sin(lam), Math.cos(lam));
+// ═══════════════════════════════════
+// SUN POSITION — Meeus algorithm
+// ═══════════════════════════════════
+function sunPos(lat, lon) {
+  const R = Math.PI/180;
+  const now = Date.now();
+  const JD = now/86400000 + 2440587.5;
+  const n = JD - 2451545.0;
+  // Mean longitude and anomaly
+  const L = (280.460 + 0.9856474*n) % 360;
+  const g = (357.528 + 0.9856003*n) * R;
+  // Ecliptic longitude
+  const lam = (L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) * R;
+  const eps = 23.439 * R;
+  // RA and dec
+  const RA = Math.atan2(Math.cos(eps)*Math.sin(lam), Math.cos(lam));
   const dec = Math.asin(Math.sin(eps)*Math.sin(lam));
-  const GMST = (280.46061837 + 360.98564736629*(JD-2451545)) * D2R;
-  const H   = GMST + lon*D2R - RA;
-  const phi = lat * D2R;
-  const sinEl = Math.sin(phi)*Math.sin(dec) + Math.cos(phi)*Math.cos(dec)*Math.cos(H);
-  const el  = Math.asin(Math.max(-1, Math.min(1, sinEl)));
-  const az  = Math.atan2(-Math.cos(dec)*Math.sin(H),
-                          Math.sin(dec)*Math.cos(phi) - Math.cos(dec)*Math.cos(H)*Math.sin(phi));
-  return { az: ((az/D2R)+360)%360, el: el/D2R };
+  // Greenwich Mean Sidereal Time
+  const GMST = (280.46061837 + 360.98564736629*(JD-2451545)) * R;
+  // Local Hour Angle
+  const H = GMST + lon*R - RA;
+  const phi = lat * R;
+  // Altitude
+  const sinAlt = Math.sin(phi)*Math.sin(dec) + Math.cos(phi)*Math.cos(dec)*Math.cos(H);
+  const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt))) / R;
+  // Azimuth (0=N, clockwise)
+  const az = (Math.atan2(
+    -Math.cos(dec)*Math.sin(H),
+    Math.sin(dec)*Math.cos(phi) - Math.cos(dec)*Math.cos(H)*Math.sin(phi)
+  ) / R + 360) % 360;
+  return { az, alt };
 }
 
 function sunTimes(lat, lon) {
-  const D2R = Math.PI / 180;
-  const now = Date.now();
-  const JD  = now/86400000 + 2440587.5;
-  const n   = Math.floor(JD - 2451545.0 + 0.5);
-  const Js  = n - lon/360;
-  const M   = (357.5291 + 0.98560028*Js) * D2R;
-  const C   = 1.9148*Math.sin(M) + 0.02*Math.sin(2*M) + 0.0003*Math.sin(3*M);
-  const lam = (M/D2R + C + 102.9372 + 180) * D2R;
-  const Jt  = 2451545 + Js + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*lam);
-  const dec = Math.asin(Math.sin(lam)*Math.sin(23.4397*D2R));
-  const cosH= (Math.sin(-0.8333*D2R) - Math.sin(lat*D2R)*Math.sin(dec))
-              / (Math.cos(lat*D2R)*Math.cos(dec));
-  if (Math.abs(cosH) > 1) return { rise:null, set:null };
-  const H   = Math.acos(cosH)/D2R;
+  const R = Math.PI/180;
+  const JD = Date.now()/86400000 + 2440587.5;
+  const n = Math.floor(JD - 2451545.0 + 0.5);
+  const Js = n - lon/360;
+  const M = (357.5291 + 0.98560028*Js) * R;
+  const C = 1.9148*Math.sin(M) + 0.02*Math.sin(2*M) + 0.0003*Math.sin(3*M);
+  const lam = (M/R + C + 102.9372 + 180) * R;
+  const Jt = 2451545 + Js + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*lam);
+  const dec = Math.asin(Math.sin(lam)*Math.sin(23.4397*R));
+  const cosH = (Math.sin(-0.8333*R) - Math.sin(lat*R)*Math.sin(dec)) / (Math.cos(lat*R)*Math.cos(dec));
+  if (Math.abs(cosH)>1) return {rise:null,set:null};
+  const H = Math.acos(cosH)/R;
   return {
-    rise: new Date((Jt - H/360 - 2440587.5)*86400000),
-    set:  new Date((Jt + H/360 - 2440587.5)*86400000)
+    rise: new Date((Jt-H/360-2440587.5)*86400000),
+    set:  new Date((Jt+H/360-2440587.5)*86400000)
   };
 }
 
-// ═══════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════
-const D2R = Math.PI/180;
+// ═══════════════════════════════════
+// GEOMETRY HELPERS
+// ═══════════════════════════════════
+const R = Math.PI/180;
 
-function decToDMS(v, isLat) {
-  const h = isLat ? (v>=0?'N':'S') : (v>=0?'E':'W');
-  const a = Math.abs(v);
-  const d = Math.floor(a), m = Math.floor((a-d)*60), s = ((a-d)*60-m)*60;
-  return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"${h}`;
+// Observer (lat/lon/~0m) → aircraft (lat/lon/altM): azimuth+elevation
+function acAzEl(oLat, oLon, aLat, aLon, aAlt) {
+  // Convert to ECEF-relative vector
+  const RE = 6371000;
+  const oLatR = oLat*R, aLatR = aLat*R;
+  const oLonR = oLon*R, aLonR = aLon*R;
+
+  // Observer ECEF
+  const ox = RE*Math.cos(oLatR)*Math.cos(oLonR);
+  const oy = RE*Math.cos(oLatR)*Math.sin(oLonR);
+  const oz = RE*Math.sin(oLatR);
+
+  // Aircraft ECEF (alt above sphere)
+  const ar = RE + aAlt;
+  const ax = ar*Math.cos(aLatR)*Math.cos(aLonR);
+  const ay = ar*Math.cos(aLatR)*Math.sin(aLonR);
+  const az2 = ar*Math.sin(aLatR);
+
+  // Vector from observer to aircraft
+  const dx = ax-ox, dy = ay-oy, dz = az2-oz;
+
+  // Rotate to local ENU frame at observer
+  // East unit vector: (-sin(lon), cos(lon), 0)
+  // North unit vector: (-sin(lat)*cos(lon), -sin(lat)*sin(lon), cos(lat))
+  // Up unit vector: (cos(lat)*cos(lon), cos(lat)*sin(lon), sin(lat))
+  const E =  -Math.sin(oLonR)*dx + Math.cos(oLonR)*dy;
+  const N =  -Math.sin(oLatR)*Math.cos(oLonR)*dx - Math.sin(oLatR)*Math.sin(oLonR)*dy + Math.cos(oLatR)*dz;
+  const U =   Math.cos(oLatR)*Math.cos(oLonR)*dx + Math.cos(oLatR)*Math.sin(oLonR)*dy + Math.sin(oLatR)*dz;
+
+  const horiz = Math.sqrt(E*E + N*N);
+  const el = Math.atan2(U, horiz) / R;
+  const az = ((Math.atan2(E, N) / R) + 360) % 360; // 0=N, clockwise
+
+  return { az, el, distKm: Math.sqrt(dx*dx+dy*dy+dz*dz)/1000 };
 }
 
-function dmsToDec(d,m,s,h) {
-  const v = (parseFloat(d)||0)+(parseFloat(m)||0)/60+(parseFloat(s)||0)/3600;
-  return (h==='S'||h==='W') ? -v : v;
+// Great-circle angular separation between two az/el points
+function angSep(az1, el1, az2, el2) {
+  const e1=el1*R, e2=el2*R, da=(az1-az2)*R;
+  const dot = Math.sin(e1)*Math.sin(e2) + Math.cos(e1)*Math.cos(e2)*Math.cos(da);
+  return Math.acos(Math.max(-1, Math.min(1, dot))) / R;
 }
 
 function haversine(la1,lo1,la2,lo2) {
-  const dLa=(la2-la1)*D2R, dLo=(lo2-lo1)*D2R;
-  const a=Math.sin(dLa/2)**2+Math.cos(la1*D2R)*Math.cos(la2*D2R)*Math.sin(dLo/2)**2;
+  const dLa=(la2-la1)*R, dLo=(lo2-lo1)*R;
+  const a=Math.sin(dLa/2)**2+Math.cos(la1*R)*Math.cos(la2*R)*Math.sin(dLo/2)**2;
   return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function acAzEl(oLat,oLon,aLat,aLon,aAlt) {
-  const R=6371000;
-  const dx=(aLon-oLon)*D2R*R*Math.cos(oLat*D2R);
-  const dy=(aLat-oLat)*D2R*R;
-  const dz=aAlt-50;
-  const d2=Math.sqrt(dx*dx+dy*dy);
-  return {
-    az: ((Math.atan2(dx,dy)/D2R)%360+360)%360,
-    el: Math.atan2(dz,d2)/D2R
-  };
+function dms2dec(d,m,s,h){
+  const v=(parseFloat(d)||0)+(parseFloat(m)||0)/60+(parseFloat(s)||0)/3600;
+  return (h==='S'||h==='W')?-v:v;
+}
+function dec2dms(v,isLat){
+  const h=isLat?(v>=0?'N':'S'):(v>=0?'E':'W');
+  const a=Math.abs(v),d=Math.floor(a),m=Math.floor((a-d)*60),s=((a-d)*60-m)*60;
+  return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"${h}`;
+}
+function hm(d){return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}
+function fmtS(s){
+  if(s==null||s<0)return'—';
+  return s<60?Math.round(s)+'s':Math.floor(s/60)+'m'+String(Math.round(s%60)).padStart(2,'0')+'s';
 }
 
-function angSep(az1,el1,az2,el2) {
-  const dot=Math.sin(el1*D2R)*Math.sin(el2*D2R)
-           +Math.cos(el1*D2R)*Math.cos(el2*D2R)*Math.cos((az1-az2)*D2R);
-  return Math.acos(Math.max(-1,Math.min(1,dot)))/D2R;
-}
-
-function hm(d) { return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}); }
-function fmtS(s) {
-  if (s==null||s<0) return '—';
-  return s<60 ? Math.round(s)+'s' : Math.floor(s/60)+'m'+String(Math.round(s%60)).padStart(2,'0')+'s';
-}
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 // TRANSIT PREDICTION
-// ═══════════════════════════════════════════════
+// Steps forward along straight-line flight, finds minimum angular separation to sun
+// Returns {minSep°, minSepT seconds, transitSep° at transit time}
+// ═══════════════════════════════════
 function predict(ac, oLat, oLon, sAz, sEl) {
-  if (!ac.velocity||ac.velocity<10||ac.true_track==null||!ac.geo_altitude) return null;
-  const spd=ac.velocity, hdg=ac.true_track*D2R;
-  const DT=5, N=360;
-  let minSep=Infinity, minT=0;
-  for (let i=0;i<=N;i++) {
-    const t=i*DT, dkm=spd*t/1000;
-    const dLat=dkm/111.32*Math.cos(hdg);
-    const dLon=dkm/(111.32*Math.cos(ac.latitude*D2R))*Math.sin(hdg);
-    const pos=acAzEl(oLat,oLon,ac.latitude+dLat,ac.longitude+dLon,ac.geo_altitude);
-    if (pos.el<-10) continue;
-    const sep=angSep(pos.az,pos.el,sAz,sEl);
-    if (sep<minSep){minSep=sep;minT=t;}
+  if (!ac.velocity || ac.velocity < 5 || ac.true_track == null || !ac.geo_altitude) return null;
+  const spd = ac.velocity; // m/s
+  const hdgR = ac.true_track * R;
+  const cosLat = Math.cos(ac.latitude * R);
+
+  const DT = 4; // 4-second steps
+  const STEPS = 450; // 30 minutes
+
+  let minSep = Infinity, minT = 0;
+  let prevSep = null;
+
+  for (let i = 0; i <= STEPS; i++) {
+    const t = i * DT;
+    const dkm = spd * t / 1000;
+    // Propagate position
+    const nLat = ac.latitude + (dkm/111.32)*Math.cos(hdgR);
+    const nLon = ac.longitude + (dkm/(111.32*cosLat))*Math.sin(hdgR);
+    // Get az/el of aircraft future position from observer
+    const pos = acAzEl(oLat, oLon, nLat, nLon, ac.geo_altitude);
+    const sep = angSep(pos.az, pos.el, sAz, sEl);
+    if (sep < minSep) { minSep = sep; minT = t; }
+    prevSep = sep;
   }
-  return {minSep, minSepT:minT};
+  return { minSep, minSepT: minT };
 }
 
-// ═══════════════════════════════════════════════
-// ADS-B FETCH
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
+// ADS-B FETCH — 4 sources
+// ═══════════════════════════════════
 function parseAc(arr) {
   return (arr||[]).map(a=>({
-    icao24:    (a.hex||'').toLowerCase(),
-    callsign:  (a.flight||'').trim()||(a.hex||'').toUpperCase(),
-    longitude: a.lon, latitude: a.lat,
-    geo_altitude: (a.alt_geom!=null?a.alt_geom:(a.alt_baro||0))*0.3048,
+    icao24:   (a.hex||'').toLowerCase(),
+    callsign: (a.flight||'').trim()||(a.hex||'').toUpperCase(),
+    longitude: a.lon,
+    latitude:  a.lat,
+    geo_altitude: (a.alt_geom!=null ? a.alt_geom : (a.alt_baro||0)) * 0.3048,
     velocity:  (a.gs||0)*0.514444,
     true_track: a.track||0,
     on_ground: !!(a.ground==='1'||a.on_ground)
-  })).filter(a=>a.latitude!=null&&a.longitude!=null&&!a.on_ground&&a.geo_altitude>200&&a.icao24);
+  })).filter(a =>
+    a.latitude!=null && a.longitude!=null &&
+    !a.on_ground && a.geo_altitude>100 && a.icao24
+  );
 }
 
-async function tfetch(url,ms=9000) {
+async function tf(url,ms=9000){
   const r=await fetch(url,{signal:AbortSignal.timeout(ms)});
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
 
-async function fetchAircraft() {
+async function fetchAircraft(){
   const {lat,lon,radius}=S;
-  const nm=Math.ceil(radius*0.54), lf=lat.toFixed(4), lof=lon.toFixed(4);
+  const nm=Math.ceil(radius*0.5400);
+  const lf=lat.toFixed(4), lof=lon.toFixed(4);
+  const p='https://corsproxy.io/?url=';
   const enc=encodeURIComponent;
-  const proxy='https://corsproxy.io/?url=';
   const srcs=[
-    ['airplanes.live', ()=>tfetch(proxy+enc(`https://api.airplanes.live/v2/point/${lf}/${lof}/${nm}`)).then(d=>parseAc(d.ac))],
-    ['adsb.one',       ()=>tfetch(proxy+enc(`https://api.adsb.one/v2/point/${lf}/${lof}/${nm}`)).then(d=>parseAc(d.ac))],
-    ['adsb.lol',       ()=>tfetch(`https://api.adsb.lol/v2/lat/${lf}/lon/${lof}/dist/${nm}`).then(d=>parseAc(d.ac))],
-    ['adsb.lol/p',     ()=>tfetch(proxy+enc(`https://api.adsb.lol/v2/lat/${lf}/lon/${lof}/dist/${nm}`)).then(d=>parseAc(d.ac))],
+    ['airplanes.live', ()=>tf(p+enc(`https://api.airplanes.live/v2/point/${lf}/${lof}/${nm}`)).then(d=>parseAc(d.ac))],
+    ['adsb.one',       ()=>tf(p+enc(`https://api.adsb.one/v2/point/${lf}/${lof}/${nm}`)).then(d=>parseAc(d.ac))],
+    ['adsb.lol',       ()=>tf(`https://api.adsb.lol/v2/lat/${lf}/lon/${lof}/dist/${nm}`).then(d=>parseAc(d.ac))],
+    ['adsb.lol/p',     ()=>tf(p+enc(`https://api.adsb.lol/v2/lat/${lf}/lon/${lof}/dist/${nm}`)).then(d=>parseAc(d.ac))],
   ];
-  for (const [name,fn] of srcs) {
-    try { const r=await fn(); if(r){S.apiSource=name;return r;} }
-    catch(e){ console.warn(name,e.message); }
+  for(const [name,fn] of srcs){
+    try{const r=await fn();if(r){S.apiSource=name;return r;}}
+    catch(e){dbgLog(`API ${name}: ${e.message}`);}
   }
   return null;
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 const S = {
-  lat:null, lon:null, active:false,
-  aircraft:[], selectedIcao:null,
-  sunAz:null, sunEl:null,
-  threshold:1.5, radius:150, intervalSec:8,
-  timerA:null, timerS:null, apiSource:''
+  lat:null,lon:null,active:false,
+  aircraft:[],selectedIcao:null,
+  sunAz:null,sunEl:null,
+  threshold:1.5,radius:150,intervalSec:8,
+  tA:null,tS:null,apiSource:''
 };
 
-// ═══════════════════════════════════════════════
-// DRAW — sun-centered projection
-// ═══════════════════════════════════════════════
-function drawSky() {
+// ═══════════════════════════════════
+// DEBUG
+// ═══════════════════════════════════
+let dbgVisible=false;
+const dbgLines=[];
+function dbgLog(msg){
+  const t=new Date().toLocaleTimeString('de-DE');
+  dbgLines.unshift(`[${t}] ${msg}`);
+  if(dbgLines.length>60)dbgLines.pop();
+  if(dbgVisible)renderDbg();
+}
+function renderDbg(){
+  document.getElementById('dbg').innerHTML=dbgLines.join('<br>');
+}
+document.getElementById('dbgBtn').addEventListener('click',()=>{
+  dbgVisible=!dbgVisible;
+  document.getElementById('dbg').classList.toggle('show',dbgVisible);
+  if(dbgVisible)renderDbg();
+});
+
+// ═══════════════════════════════════
+// SKY DRAW — sun-centered projection
+// The sun is always at center.
+// x-axis = azimuth offset (East = right)
+// y-axis = elevation offset (Up = up)
+// Scale = pixels per degree
+// ═══════════════════════════════════
+function drawSky(){
   const canvas=document.getElementById('sky');
-  const wrap=document.getElementById('skyWrap');
+  const wrap=document.getElementById('sw');
   const W=wrap.clientWidth, H=wrap.clientHeight;
   canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,W,H);
 
   const {sunAz,sunEl,aircraft,lat,lon,selectedIcao,threshold}=S;
-  const sb=document.getElementById('sunBelow');
+  const sbEl=document.getElementById('sb2');
 
-  if (sunAz==null||sunEl==null) { sb.style.display='flex'; return; }
-  if (sunEl<-2) { sb.style.display='flex'; return; }
-  sb.style.display='none';
+  if(sunAz==null){sbEl.style.display='flex';return;}
+  if(sunEl<-3){sbEl.style.display='flex';return;}
+  sbEl.style.display='none';
 
   const cx=W/2, cy=H/2;
-  // Scale: pixels per degree. Show ±15° around sun.
-  const VIEW=15;
-  const scale=Math.min(W,H)/2/VIEW;
+  // VIEW_DEG: half-width of visible sky in degrees
+  const VIEW=12;
+  const sc=Math.min(W,H)/2/VIEW; // pixels/degree
 
-  // Project: convert az/el to canvas coords relative to sun at center
-  function proj(az, el) {
-    // Angular offsets in degrees (small-angle friendly for <20°)
-    const dAz = ((az-sunAz+540)%360-180)*Math.cos(sunEl*D2R);
-    const dEl = el - sunEl;
-    return { x: cx + dAz*scale, y: cy - dEl*scale };
+  // Project az/el → canvas coords (sun at center)
+  // dAz: signed azimuth offset, corrected for elevation foreshortening
+  // dEl: signed elevation offset
+  function proj(az,el){
+    let dAz=az-sunAz;
+    // Wrap to [-180,180]
+    if(dAz>180)dAz-=360;
+    if(dAz<-180)dAz+=360;
+    // Foreshortening: at the sun's elevation, 1° az = cos(el)° on the sphere
+    // We use the mean elevation for the projection
+    const avgEl=(el+sunEl)/2;
+    const px=dAz*Math.cos(avgEl*R)*sc;
+    const py=-(el-sunEl)*sc;
+    return{x:cx+px, y:cy+py};
   }
 
-  // Grid rings
-  [0.25, 0.5, 1, 2, 5, 10].forEach(deg=>{
-    const r=deg*scale;
-    if (r>Math.hypot(W,H)) return;
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
-    if (deg===0.5) {
-      ctx.strokeStyle='rgba(255,208,60,0.4)';
-      ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  // ── Grid rings ──
+  [0.265,0.5,1,2,5,10].forEach(deg=>{
+    const r=deg*sc;
+    if(r<1)return;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    if(deg===0.5){
+      // Solar disc boundary
+      ctx.strokeStyle='rgba(255,208,60,.5)';
+      ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    } else if(deg===0.265){
+      // True solar radius
+      ctx.strokeStyle='rgba(255,208,60,.15)';
+      ctx.lineWidth=0.5;ctx.setLineDash([]);
     } else {
-      ctx.strokeStyle='rgba(255,255,255,0.07)';
-      ctx.lineWidth=0.5; ctx.setLineDash([]);
+      ctx.strokeStyle='rgba(255,255,255,.06)';
+      ctx.lineWidth=0.5;ctx.setLineDash([]);
     }
-    ctx.stroke(); ctx.setLineDash([]);
-    if (deg>=1&&r<Math.min(W,H)*0.9) {
-      ctx.fillStyle='rgba(255,255,255,0.18)';
-      ctx.font='9px Space Mono'; ctx.textAlign='left'; ctx.textBaseline='middle';
-      ctx.fillText(deg+'°', cx+r+3, cy);
+    ctx.stroke();ctx.setLineDash([]);
+    if(deg>=1&&r<Math.min(W,H)*0.48){
+      ctx.fillStyle='rgba(255,255,255,.2)';
+      ctx.font='9px Space Mono';ctx.textAlign='left';ctx.textBaseline='middle';
+      ctx.fillText(deg+'°',cx+r+3,cy);
     }
   });
 
-  // Cardinal labels around the view
-  const labelR=Math.min(W,H)/2-12;
-  ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.font='9px Space Mono';
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  // N is up on screen = sun elevation direction
-  ctx.fillText('N', cx, cy-labelR);
-  ctx.fillText('S', cx, cy+labelR);
-  ctx.fillText('O', cx+labelR, cy);
-  ctx.fillText('W', cx-labelR, cy);
+  // ── Compass ticks (relative to sun center) ──
+  // These show sky directions from sun's perspective
+  const tickR=Math.min(W,H)*0.46;
+  ctx.fillStyle='rgba(255,255,255,.15)';ctx.font='9px Space Mono';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  // N=up means higher elevation → y decreases
+  ctx.fillText('↑El',cx,cy-tickR);
+  ctx.fillText('↓El',cx,cy+tickR);
+  ctx.fillText('Az→',cx+tickR,cy);
+  ctx.fillText('←Az',cx-tickR,cy);
 
   // ── Sun disc ──
-  // Outer glow
-  const g=ctx.createRadialGradient(cx,cy,2,cx,cy,32);
-  g.addColorStop(0,'rgba(255,224,80,0.5)');
-  g.addColorStop(0.3,'rgba(255,200,50,0.2)');
+  const g=ctx.createRadialGradient(cx,cy,2,cx,cy,28);
+  g.addColorStop(0,'rgba(255,224,80,.55)');
+  g.addColorStop(.35,'rgba(255,200,50,.2)');
   g.addColorStop(1,'rgba(255,180,0,0)');
-  ctx.beginPath(); ctx.arc(cx,cy,32,0,Math.PI*2);
-  ctx.fillStyle=g; ctx.fill();
-  // Solar disc (~0.265° radius)
-  const sunR=Math.max(5, 0.265*scale);
-  ctx.beginPath(); ctx.arc(cx,cy,sunR,0,Math.PI*2);
-  ctx.fillStyle='#ffd060'; ctx.fill();
+  ctx.beginPath();ctx.arc(cx,cy,28,0,Math.PI*2);
+  ctx.fillStyle=g;ctx.fill();
+  const sunR=Math.max(4,0.265*sc);
+  ctx.beginPath();ctx.arc(cx,cy,sunR,0,Math.PI*2);
+  ctx.fillStyle='#ffd060';ctx.fill();
 
   // ── Aircraft ──
+  let drawnCount=0;
   aircraft.forEach(ac=>{
     const pos=acAzEl(lat,lon,ac.latitude,ac.longitude,ac.geo_altitude);
-    if (pos.el<-15) return;
+    if(pos.el<-5)return;
     const sep=angSep(pos.az,pos.el,sunAz,sunEl);
-    if (sep>VIEW*1.5) return;
+    // Only draw if within view — but always draw if selected
+    const isSel=ac.icao24===selectedIcao;
+    if(sep>VIEW*1.4&&!isSel)return;
+
     const pred=predict(ac,lat,lon,sunAz,sunEl);
     const ms=pred?pred.minSep:sep;
-    const isT=ms<=0.5, isC=ms<=threshold, isSel=ac.icao24===selectedIcao;
-
+    const isT=ms<=0.5, isC=ms<=threshold;
     const p=proj(pos.az,pos.el);
+    drawnCount++;
 
-    // Predicted path (selected only)
-    if (isSel&&ac.velocity>10&&ac.true_track!=null) {
-      const hdg=ac.true_track*D2R;
+    // Predicted path for selected aircraft
+    if(isSel&&ac.velocity>5&&ac.true_track!=null){
+      const hdgR2=ac.true_track*R;
+      const cosLat=Math.cos(ac.latitude*R);
       const pts=[];
       for(let i=0;i<=120;i++){
-        const t=i*15, dkm=ac.velocity*t/1000;
-        const dLa=dkm/111.32*Math.cos(hdg);
-        const dLo=dkm/(111.32*Math.cos(ac.latitude*D2R))*Math.sin(hdg);
-        const np=acAzEl(lat,lon,ac.latitude+dLa,ac.longitude+dLo,ac.geo_altitude);
-        if(angSep(np.az,np.el,sunAz,sunEl)>VIEW*1.5) continue;
+        const t=i*15;
+        const dkm=ac.velocity*t/1000;
+        const nLat=ac.latitude+(dkm/111.32)*Math.cos(hdgR2);
+        const nLon=ac.longitude+(dkm/(111.32*cosLat))*Math.sin(hdgR2);
+        const np=acAzEl(lat,lon,nLat,nLon,ac.geo_altitude);
+        const sp2=angSep(np.az,np.el,sunAz,sunEl);
+        if(sp2>VIEW*1.5&&pts.length>0)break;
         pts.push(proj(np.az,np.el));
       }
       if(pts.length>1){
-        ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+        ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
         pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));
-        ctx.strokeStyle=isT?'rgba(78,203,141,0.6)':isC?'rgba(245,166,35,0.5)':'rgba(91,156,246,0.35)';
-        ctx.lineWidth=1.5; ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle=isT?'rgba(78,203,141,.65)':isC?'rgba(245,166,35,.55)':'rgba(91,156,246,.4)';
+        ctx.lineWidth=1.5;ctx.setLineDash([3,5]);ctx.stroke();ctx.setLineDash([]);
       }
       // Closest approach marker
-      if (pred) {
-        const t=pred.minSepT, dkm=ac.velocity*t/1000, hdg2=ac.true_track*D2R;
-        const dLa=dkm/111.32*Math.cos(hdg2);
-        const dLo=dkm/(111.32*Math.cos(ac.latitude*D2R))*Math.sin(hdg2);
-        const mp=acAzEl(lat,lon,ac.latitude+dLa,ac.longitude+dLo,ac.geo_altitude);
+      if(pred&&pred.minSepT!=null){
+        const t=pred.minSepT,dkm=ac.velocity*t/1000;
+        const hdgR3=ac.true_track*R,cosLat2=Math.cos(ac.latitude*R);
+        const nLat=ac.latitude+(dkm/111.32)*Math.cos(hdgR3);
+        const nLon=ac.longitude+(dkm/(111.32*cosLat2))*Math.sin(hdgR3);
+        const mp=acAzEl(lat,lon,nLat,nLon,ac.geo_altitude);
         const m=proj(mp.az,mp.el);
-        // Dashed line to sun
-        ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(cx,cy);
-        ctx.strokeStyle=isT?'rgba(78,203,141,0.3)':'rgba(245,166,35,0.25)';
-        ctx.lineWidth=1; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
-        // Circle at closest point
-        ctx.beginPath(); ctx.arc(m.x,m.y,5,0,Math.PI*2);
-        ctx.strokeStyle=isT?'#4ecb8d':'#f5a623'; ctx.lineWidth=1.5; ctx.stroke();
-        // Distance label
+        // Line to sun
+        ctx.beginPath();ctx.moveTo(m.x,m.y);ctx.lineTo(cx,cy);
+        ctx.strokeStyle=isT?'rgba(78,203,141,.3)':'rgba(245,166,35,.25)';
+        ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.stroke();ctx.setLineDash([]);
+        // Circle
+        ctx.beginPath();ctx.arc(m.x,m.y,5,0,Math.PI*2);
+        ctx.strokeStyle=isT?'#4ecb8d':'#f5a623';ctx.lineWidth=1.5;ctx.stroke();
+        // Label
         ctx.fillStyle=isT?'#4ecb8d':'#f5a623';
-        ctx.font='bold 9px Space Mono'; ctx.textAlign='center'; ctx.textBaseline='bottom';
-        const lx=(m.x+cx)/2, ly=Math.min(m.y,cy)-6;
-        ctx.fillText(pred.minSep.toFixed(2)+'°',lx,ly);
+        ctx.font='bold 9px Space Mono';ctx.textAlign='center';ctx.textBaseline='bottom';
+        ctx.fillText(pred.minSep.toFixed(2)+'°',(m.x+cx)/2,(m.y+cy)/2-4);
       }
     }
 
     // Plane icon
-    const col=isT?'#4ecb8d':isC?'#f5a623':isSel?'#5b9cf6':'rgba(160,170,190,0.45)';
+    const col=isT?'#4ecb8d':isC?'#f5a623':isSel?'#5b9cf6':'rgba(150,160,180,.55)';
     const sz=isSel?9:6;
-    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(ac.true_track*D2R);
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(ac.true_track*R);
     ctx.fillStyle=col;
     ctx.beginPath();
-    ctx.moveTo(0,-sz); ctx.lineTo(sz*0.55,sz*0.45); ctx.lineTo(0,sz*0.1); ctx.lineTo(-sz*0.55,sz*0.45);
-    ctx.closePath(); ctx.fill();
-    if(isSel||isT){ ctx.strokeStyle=col; ctx.lineWidth=1.2; ctx.stroke(); }
+    ctx.moveTo(0,-sz);ctx.lineTo(sz*.55,sz*.45);ctx.lineTo(0,sz*.1);ctx.lineTo(-sz*.55,sz*.45);
+    ctx.closePath();ctx.fill();
+    if(isSel||isT){ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.stroke();}
     ctx.restore();
 
-    // Callsign label
     if(isSel||isT||isC){
       ctx.fillStyle=col;
       ctx.font=(isSel?'bold ':'')+'9px Space Mono';
-      ctx.textAlign='left'; ctx.textBaseline='bottom';
-      ctx.fillText(ac.callsign, p.x+9, p.y-2);
+      ctx.textAlign='left';ctx.textBaseline='bottom';
+      ctx.fillText(ac.callsign,p.x+9,p.y-2);
     }
   });
 
-  document.getElementById('infoTL').textContent = `☀  Az ${sunAz.toFixed(1)}°  El ${sunEl.toFixed(1)}°`;
-  document.getElementById('infoTR').textContent = new Date().toLocaleTimeString('de-DE');
+  document.getElementById('itl').textContent=`☀ Az ${sunAz.toFixed(1)}°  El ${sunEl.toFixed(1)}°  |  ${drawnCount} Flugzeuge im Bild`;
+  document.getElementById('itr').textContent=new Date().toLocaleTimeString('de-DE');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 // RENDER LIST
-// ═══════════════════════════════════════════════
-function renderList() {
+// ═══════════════════════════════════
+function renderList(){
   const {aircraft,lat,lon,sunAz,sunEl,threshold,selectedIcao}=S;
   const el=document.getElementById('acList');
-  if(!aircraft.length){el.innerHTML='<div class="empty">Keine Flugzeuge im Suchbereich.</div>';return;}
+  if(!aircraft.length){el.innerHTML='<div class="emp">Keine Flugzeuge im Suchbereich.</div>';return;}
 
   const scored=aircraft.map(ac=>{
     const pos=acAzEl(lat,lon,ac.latitude,ac.longitude,ac.geo_altitude);
@@ -590,159 +610,178 @@ function renderList() {
     return{ac,pos,sep,pred,km};
   }).sort((a,b)=>(a.pred?.minSep??99)-(b.pred?.minSep??99));
 
+  // Log top 5 to debug
+  dbgLog(`☀ Az=${sunAz.toFixed(1)}° El=${sunEl.toFixed(1)}° | ${aircraft.length} ac total`);
+  scored.slice(0,3).forEach(({ac,sep,pred,km})=>{
+    dbgLog(`  ${ac.callsign} sep=${sep.toFixed(2)}° minSep=${pred?pred.minSep.toFixed(2):'?'}° in ${pred?fmtS(pred.minSepT):'?'} | ${km.toFixed(0)}km`);
+  });
+
   el.innerHTML='';
-  scored.slice(0,25).forEach(({ac,pos,sep,pred,km})=>{
+  scored.slice(0,30).forEach(({ac,pos,sep,pred,km})=>{
     const ms=pred?pred.minSep:sep;
-    const isT=ms<=0.5, isC=ms<=threshold, isSel=ac.icao24===selectedIcao;
-    const bw=Math.max(0,Math.min(100,(1-ms/15)*100));
+    const isT=ms<=0.5,isC=ms<=threshold,isSel=ac.icao24===selectedIcao;
+    const bw=Math.max(0,Math.min(100,(1-ms/20)*100));
     const bc=isT?'#4ecb8d':isC?'#f5a623':'#5b9cf6';
+    const col=isT?'var(--ok)':isC?'var(--wa)':'var(--tx)';
     const tag=isT?'<span class="tag t">TRANSIT</span>':isC?'<span class="tag n">NAH</span>':`<span class="tag f">${ms.toFixed(1)}°</span>`;
-    const col=isT?'var(--ok)':isC?'var(--warn)':'var(--text)';
     const div=document.createElement('div');
-    div.className='acard'+(isSel?' sel':'')+(isT?' tr':'');
+    div.className='ac'+(isSel?' sel':'')+(isT?' tr':'');
     div.innerHTML=`
-      <div class="atop"><span class="acs" style="color:${col}">${ac.callsign}</span>${tag}</div>
-      <div class="abar-w"><div class="abar" style="width:${bw}%;background:${bc}"></div></div>
-      <div class="ameta"><span>${km.toFixed(0)}km</span><span>${(ac.geo_altitude/1000).toFixed(1)}km Höhe</span><span>in ${pred?fmtS(pred.minSepT):'—'}</span></div>`;
+      <div class="atp"><span class="acs" style="color:${col}">${ac.callsign}</span>${tag}</div>
+      <div class="abw"><div class="ab" style="width:${bw}%;background:${bc}"></div></div>
+      <div class="am"><span>${km.toFixed(0)}km</span><span>${(ac.geo_altitude/1000).toFixed(1)}km</span><span>min.Abst. in ${pred?fmtS(pred.minSepT):'—'}</span></div>`;
     div.addEventListener('click',()=>{
       S.selectedIcao=ac.icao24;
-      renderList(); updateDetail({ac,sep,pred}); drawSky();
+      renderList();updateDet({ac,sep,pred});drawSky();
     });
     el.appendChild(div);
   });
 
   if(!S.selectedIcao&&scored.length){
     S.selectedIcao=scored[0].ac.icao24;
-    updateDetail(scored[0]);
-  } else if(S.selectedIcao){
+    updateDet(scored[0]);
+  } else {
     const s=scored.find(x=>x.ac.icao24===S.selectedIcao);
-    if(s) updateDetail(s);
+    if(s)updateDet(s);
   }
 }
 
-function updateDetail({ac,sep,pred}){
+function updateDet({ac,sep,pred}){
   const ms=pred?pred.minSep:sep;
-  const isT=ms<=0.5, isC=ms<=S.threshold;
-  const vc=(t,c,i)=>t?'ok':c?'w':'i';
+  const isT=ms<=0.5,isC=ms<=S.threshold;
+  const vc=isT?'ok':isC?'wa':'in';
   document.getElementById('dCS').textContent=ac.callsign;
-  document.getElementById('dCS').className='v '+(isT?'ok':isC?'w':'i');
-  document.getElementById('dSep').textContent=sep.toFixed(2)+'°';
-  document.getElementById('dSep').className='v '+(sep<=0.5?'ok':sep<=S.threshold?'w':'i');
-  document.getElementById('dMin').textContent=ms.toFixed(2)+'°';
-  document.getElementById('dMin').className='v '+(isT?'ok':isC?'w':'i');
+  document.getElementById('dCS').className='v '+vc;
+  document.getElementById('dSp').textContent=sep.toFixed(2)+'°';
+  document.getElementById('dSp').className='v '+(sep<=0.5?'ok':sep<=S.threshold?'wa':'in');
+  document.getElementById('dMn').textContent=(pred?pred.minSep:sep).toFixed(2)+'°';
+  document.getElementById('dMn').className='v '+vc;
   const eta=pred?pred.minSepT:null;
-  document.getElementById('dETA').textContent=fmtS(eta);
-  document.getElementById('dETA').className='v '+(eta!=null&&eta<60?'ok':eta!=null&&eta<300?'w':'i');
-  document.getElementById('dAlt').textContent=ac.geo_altitude?Math.round(ac.geo_altitude)+' m':'—';
+  document.getElementById('dET').textContent=fmtS(eta);
+  document.getElementById('dET').className='v '+(eta!=null&&eta<60?'ok':eta!=null&&eta<300?'wa':'in');
+  document.getElementById('dAl').textContent=ac.geo_altitude?Math.round(ac.geo_altitude)+' m':'—';
 }
 
-// ═══════════════════════════════════════════════
-// UPDATE LOOP
-// ═══════════════════════════════════════════════
-function updateSunDisplay(){
-  if(S.lat==null) return;
-  const sp=sunPos(Date.now(),S.lat,S.lon);
+// ═══════════════════════════════════
+// UPDATE
+// ═══════════════════════════════════
+function updateSun(){
+  if(S.lat==null)return;
+  const sp=sunPos(S.lat,S.lon);
   const t=sunTimes(S.lat,S.lon);
-  S.sunAz=sp.az; S.sunEl=sp.el;
+  S.sunAz=sp.az; S.sunEl=sp.alt;
   document.getElementById('sAz').textContent=sp.az.toFixed(1)+'°';
-  document.getElementById('sEl').textContent=sp.el.toFixed(1)+'°';
-  document.getElementById('sRise').textContent=t.rise?hm(t.rise):'—';
-  document.getElementById('sSet').textContent=t.set?hm(t.set):'—';
+  document.getElementById('sEl').textContent=sp.alt.toFixed(1)+'°';
+  document.getElementById('sRi').textContent=t.rise?hm(t.rise):'—';
+  document.getElementById('sSe').textContent=t.set?hm(t.set):'—';
 }
 
 async function update(){
-  if(!S.active) return;
-  setPill('stPill','','Lade...');
+  if(!S.active)return;
+  setPill('stP','','Lade...');
   const ac=await fetchAircraft();
-  if(ac===null){ setPill('stPill','err','API-Fehler'); return; }
+  if(ac===null){setPill('stP','er','API-Fehler');return;}
   S.aircraft=ac;
-  updateSunDisplay();
-  renderList(); drawSky();
-  document.getElementById('lastUpd').textContent=new Date().toLocaleTimeString('de-DE');
-  setPill('stPill','live',ac.length+' Flugzeuge');
-  setPill('apiPill','live',S.apiSource);
+  updateSun();
+  renderList();drawSky();
+  document.getElementById('lastU').textContent=new Date().toLocaleTimeString('de-DE');
+  setPill('stP','ok',ac.length+' Flugzeuge');
+  setPill('apiP','ok',S.apiSource);
 }
 
 function setPill(id,cls,txt){
   const e=document.getElementById(id);
-  e.className='pill '+cls;
+  e.className='pill '+(cls?cls:'');
   e.querySelector('span').textContent=txt;
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 // DMS UI
-// ═══════════════════════════════════════════════
-function refreshDmsOut(){
-  const latD=document.getElementById('latD').value;
-  if(!latD) return;
-  const lat=dmsToDec(document.getElementById('latD').value,document.getElementById('latM').value,document.getElementById('latS').value,document.getElementById('latH').value);
-  const lon=dmsToDec(document.getElementById('lonD').value,document.getElementById('lonM').value,document.getElementById('lonS').value,document.getElementById('lonH').value);
-  if(!isNaN(lat)&&!isNaN(lon))
-    document.getElementById('dmsOut').textContent=decToDMS(lat,true)+'  '+decToDMS(lon,false);
+// ═══════════════════════════════════
+function refreshDout(){
+  const lat=dms2dec(
+    document.getElementById('lad').value,
+    document.getElementById('lam').value,
+    document.getElementById('las').value,
+    document.getElementById('lah').value
+  );
+  const lon=dms2dec(
+    document.getElementById('lod').value,
+    document.getElementById('lom').value,
+    document.getElementById('los').value,
+    document.getElementById('loh').value
+  );
+  if(!isNaN(lat)&&!isNaN(lon)&&document.getElementById('lad').value)
+    document.getElementById('dout').textContent=dec2dms(lat,true)+'  '+dec2dms(lon,false);
 }
 
 function fillDms(lat,lon){
   const la=Math.abs(lat),lo=Math.abs(lon);
   const lad=Math.floor(la),lam=Math.floor((la-lad)*60),las=((la-lad)*60-lam)*60;
   const lod=Math.floor(lo),lom=Math.floor((lo-lod)*60),los=((lo-lod)*60-lom)*60;
-  document.getElementById('latD').value=lad;
-  document.getElementById('latM').value=lam;
-  document.getElementById('latS').value=las.toFixed(1);
-  document.getElementById('latH').value=lat>=0?'N':'S';
-  document.getElementById('lonD').value=lod;
-  document.getElementById('lonM').value=lom;
-  document.getElementById('lonS').value=los.toFixed(1);
-  document.getElementById('lonH').value=lon>=0?'E':'W';
-  refreshDmsOut();
+  document.getElementById('lad').value=lad;
+  document.getElementById('lam').value=lam;
+  document.getElementById('las').value=las.toFixed(1);
+  document.getElementById('lah').value=lat>=0?'N':'S';
+  document.getElementById('lod').value=lod;
+  document.getElementById('lom').value=lom;
+  document.getElementById('los').value=los.toFixed(1);
+  document.getElementById('loh').value=lon>=0?'E':'W';
+  refreshDout();
 }
 
-['latD','latM','latS','latH','lonD','lonM','lonS','lonH'].forEach(id=>
-  document.getElementById(id).addEventListener('input',refreshDmsOut));
+['lad','lam','las','lah','lod','lom','los','loh'].forEach(id=>
+  document.getElementById(id).addEventListener('input',refreshDout));
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 // EVENTS
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 document.getElementById('gpsBtn').addEventListener('click',()=>{
-  if(!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(p=>fillDms(p.coords.latitude,p.coords.longitude),
-    ()=>alert('GPS-Zugriff verweigert'));
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(
+    p=>fillDms(p.coords.latitude,p.coords.longitude),
+    ()=>alert('GPS-Zugriff verweigert')
+  );
 });
 
 document.getElementById('startBtn').addEventListener('click',()=>{
-  const lat=dmsToDec(document.getElementById('latD').value,document.getElementById('latM').value,document.getElementById('latS').value,document.getElementById('latH').value);
-  const lon=dmsToDec(document.getElementById('lonD').value,document.getElementById('lonM').value,document.getElementById('lonS').value,document.getElementById('lonH').value);
-  if(isNaN(lat)||isNaN(lon)||lat<-90||lat>90||lon<-180||lon>180)
-    return alert('Ungültige Koordinaten');
-  S.lat=lat; S.lon=lon; S.active=true; S.selectedIcao=null;
-  if(S.timerA) clearInterval(S.timerA);
-  if(S.timerS) clearInterval(S.timerS);
-  updateSunDisplay();
+  const lat=dms2dec(
+    document.getElementById('lad').value,document.getElementById('lam').value,
+    document.getElementById('las').value,document.getElementById('lah').value);
+  const lon=dms2dec(
+    document.getElementById('lod').value,document.getElementById('lom').value,
+    document.getElementById('los').value,document.getElementById('loh').value);
+  if(isNaN(lat)||isNaN(lon))return alert('Ungültige Koordinaten');
+  S.lat=lat;S.lon=lon;S.active=true;S.selectedIcao=null;
+  if(S.tA)clearInterval(S.tA);
+  if(S.tS)clearInterval(S.tS);
+  updateSun();
   update();
-  S.timerA=setInterval(update, S.intervalSec*1000);
-  S.timerS=setInterval(()=>{ updateSunDisplay(); drawSky(); }, 4000);
+  S.tA=setInterval(update,S.intervalSec*1000);
+  S.tS=setInterval(()=>{updateSun();drawSky();},3000);
 });
 
 document.getElementById('refBtn').addEventListener('click',update);
 
-document.getElementById('thrSlider').addEventListener('input',function(){
+document.getElementById('thrS').addEventListener('input',function(){
   S.threshold=parseFloat(this.value);
   document.getElementById('thrV').textContent=S.threshold.toFixed(1)+'°';
   if(S.active){renderList();drawSky();}
 });
-document.getElementById('radSlider').addEventListener('input',function(){
+document.getElementById('radS').addEventListener('input',function(){
   S.radius=parseInt(this.value);
   document.getElementById('radV').textContent=S.radius+' km';
 });
-document.getElementById('intSlider').addEventListener('input',function(){
+document.getElementById('intS').addEventListener('input',function(){
   S.intervalSec=parseInt(this.value);
   document.getElementById('intV').textContent=S.intervalSec+' s';
-  if(S.active&&S.timerA){clearInterval(S.timerA);S.timerA=setInterval(update,S.intervalSec*1000);}
+  if(S.active&&S.tA){clearInterval(S.tA);S.tA=setInterval(update,S.intervalSec*1000);}
 });
 
 window.addEventListener('resize',()=>{if(S.active)drawSky();});
 
 // Prefill Aachen
-fillDms(50.7753, 6.0839);
+fillDms(50.7753,6.0839);
 </script>
 </body>
 </html>
